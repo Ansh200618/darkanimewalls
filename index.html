@@ -297,7 +297,7 @@
           <div class="phone">
             <div id="heroMobileScreen" class="screen">
               <img id="heroMobileImage" class="screen-image" alt="Latest mobile wallpaper preview" loading="lazy">
-              <div class="screen-copy"><small id="heroMobileType">Mobile 9:16</small><h3 id="heroMobileTitle">Dark Aura Lockscreen</h3></div>
+              <div class="screen-copy"><small id="heroMobileType">Mobile 9:16</small><h3 id="heroMobileTitle">Dark Aura<br>Lockscreen</h3></div>
             </div>
           </div>
           <div class="float-card two">
@@ -532,6 +532,7 @@
       const nonMobile = wallpapers.filter(w => w.public_id !== mobile?.public_id);
       const desktop = nonMobile.find(isDesktopWallpaper) || nonMobile[0] || mobile;
       const accent = wallpapers.find(w => w.public_id !== mobile?.public_id && w.public_id !== desktop?.public_id)
+        || desktop
         || mobile;
 
       if (mobile?.imageUrl) {
@@ -554,8 +555,8 @@
       heroDesktopDetail.textContent = desktop?.category || "Blue Aura";
 
       setHeroCardImage(heroAccentImage, accent);
-      heroAccentType.textContent = accent?.category || "Manga Style";
-      heroAccentDetail.textContent = accent?.resolution || "Red Glow";
+      heroAccentType.textContent = accent?.type || "Manga Style";
+      heroAccentDetail.textContent = accent?.category || "Red Glow";
     }
 
     function render() {
