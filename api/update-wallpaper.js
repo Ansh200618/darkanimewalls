@@ -35,7 +35,6 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   const studioPassword = process.env.STUDIO_PASSWORD;
-  const folder = process.env.CLOUDINARY_FOLDER || "dark-anime-walls";
 
   if (!cloudName || !apiKey || !apiSecret || !studioPassword) {
     res.status(500).json({ error: "Server environment variables are missing." });
@@ -46,6 +45,12 @@ module.exports = async function handler(req, res) {
 
   if (body.password !== studioPassword) {
     res.status(401).json({ error: "Invalid studio password." });
+    return;
+  }
+
+  const publicId = safeText(body.public_id);
+  if (!publicId) {
+    res.status(400).json({ error: "public_id is required." });
     return;
   }
 
@@ -81,23 +86,38 @@ module.exports = async function handler(req, res) {
   ].join("|");
 
   const timestamp = Math.round(Date.now() / 1000);
-
   const paramsToSign = {
     context,
-    folder,
+    public_id: publicId,
     tags,
-    timestamp
+    timestamp,
+    type: "upload"
   };
-
   const signature = signCloudinaryParams(paramsToSign, apiSecret);
 
-  res.status(200).json({
-    cloudName,
-    apiKey,
-    timestamp,
-    folder,
-    tags,
-    context,
-    signature
-  });
+  const form = new URLSearchParams();
+  form.set("public_id", publicId);
+  form.set("type", "upload");
+  form.set("context", context);
+  form.set("tags", tags);
+  form.set("timestamp", timestamp);
+  form.set("api_key", apiKey);
+  form.set("signature", signature);
+
+  try {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/explicit`, {
+      method: "POST",
+      body: form
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      res.status(response.status).json({ error: data.error?.message || "Unable to update wallpaper." });
+      return;
+    }
+
+    res.status(200).json({ ok: true, public_id: data.public_id });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Server error." });
+  }
 };
