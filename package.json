@@ -1,0 +1,13 @@
+{
+  "name": "dark-anime-walls-cloudinary",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dark Anime Walls public wallpaper website with separate Cloudinary admin panel.",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
