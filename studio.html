@@ -14,12 +14,12 @@
       --font:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    :is(body,select[multiple],textarea,.modal-card,.list){scrollbar-width:thin;scrollbar-color:transparent transparent}
-    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar{width:10px;height:10px}
-    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar-track{background:transparent}
-    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar-thumb{background:transparent;border-radius:999px;border:2px solid transparent;background-clip:content-box}
-    :is(body,select[multiple],textarea,.modal-card,.list):hover::-webkit-scrollbar-thumb,:is(body,select[multiple],textarea,.modal-card,.list):focus-within::-webkit-scrollbar-thumb{background:rgba(139,92,246,.55)}
-    :is(body,select[multiple],textarea,.modal-card,.list):hover,:is(body,select[multiple],textarea,.modal-card,.list):focus-within{scrollbar-color:rgba(139,92,246,.55) rgba(255,255,255,.05)}
+    :is(body,textarea,.modal-card,.list){scrollbar-width:thin;scrollbar-color:transparent transparent}
+    :is(body,textarea,.modal-card,.list)::-webkit-scrollbar{width:10px;height:10px}
+    :is(body,textarea,.modal-card,.list)::-webkit-scrollbar-track{background:transparent}
+    :is(body,textarea,.modal-card,.list)::-webkit-scrollbar-thumb{background:transparent;border-radius:999px;border:2px solid transparent;background-clip:content-box}
+    :is(body,textarea,.modal-card,.list):hover::-webkit-scrollbar-thumb,:is(body,textarea,.modal-card,.list):focus-within::-webkit-scrollbar-thumb{background:rgba(139,92,246,.55)}
+    :is(body,textarea,.modal-card,.list):hover,:is(body,textarea,.modal-card,.list):focus-within{scrollbar-color:rgba(139,92,246,.55) rgba(255,255,255,.05)}
     body{
       font-family:var(--font); color:var(--text); min-height:100vh;
       background:radial-gradient(circle at 18% 8%,rgba(255,23,68,.24),transparent 30%),radial-gradient(circle at 80% 18%,rgba(0,200,255,.17),transparent 32%),var(--bg);
@@ -55,6 +55,20 @@
     select[multiple]{min-height:130px;padding:8px}
     select[multiple] option{padding:8px 10px}
     select option{color:#111}
+    .multi-select-native{display:none}
+    .multi-toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    .multi-toolbar .chip-btn{font-size:.76rem;padding:7px 11px}
+    .multi-picker{
+      display:flex;flex-wrap:wrap;gap:8px;min-height:50px;
+      border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);
+      border-radius:15px;padding:10px;
+    }
+    .chip-btn{
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#f8f7ff;
+      border-radius:999px;padding:8px 12px;line-height:1;font-weight:800;cursor:pointer;transition:.2s;
+    }
+    .chip-btn:hover{transform:translateY(-1px);border-color:rgba(0,200,255,.6)}
+    .chip-btn.selected{border-color:rgba(0,200,255,.66);background:linear-gradient(135deg,rgba(0,200,255,.25),rgba(124,58,237,.35));box-shadow:0 0 0 2px rgba(0,200,255,.14)}
     textarea{min-height:110px;resize:vertical}
     .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
     .drop{
@@ -131,14 +145,18 @@
           <div class="two">
             <div class="field">
               <label for="category">Category</label>
-              <select id="category" multiple>
+              <select id="category" class="multi-select-native" multiple>
                 <option selected>Dark Anime</option>
                 <option>Manga Style</option>
                 <option>Red Aura</option>
                 <option>Blue Aura</option>
                 <option>Purple Aura</option>
               </select>
-              <div class="hint">Select multiple options (Ctrl/Cmd + click)</div>
+              <div class="multi-toolbar">
+                <button type="button" class="chip-btn" data-action="select-all" data-target="category">Select all</button>
+                <button type="button" class="chip-btn" data-action="clear" data-target="category">Clear</button>
+              </div>
+              <div class="multi-picker" data-select="category"></div>
             </div>
 
             <div class="field">
@@ -153,14 +171,18 @@
           <div class="two">
             <div class="field">
               <label for="mood">Mood</label>
-              <select id="mood" multiple>
+              <select id="mood" class="multi-select-native" multiple>
                 <option>Red</option>
                 <option>Blue</option>
                 <option>Purple</option>
                 <option>Black</option>
                 <option selected>Mixed</option>
               </select>
-              <div class="hint">Select multiple options (Ctrl/Cmd + click)</div>
+              <div class="multi-toolbar">
+                <button type="button" class="chip-btn" data-action="select-all" data-target="mood">Select all</button>
+                <button type="button" class="chip-btn" data-action="clear" data-target="mood">Clear</button>
+              </div>
+              <div class="multi-picker" data-select="mood"></div>
             </div>
 
             <div class="field">
@@ -201,13 +223,18 @@
       <div class="two">
         <div class="field">
           <label for="editCategory">Category</label>
-          <select id="editCategory" multiple>
+          <select id="editCategory" class="multi-select-native" multiple>
             <option>Dark Anime</option>
             <option>Manga Style</option>
             <option>Red Aura</option>
             <option>Blue Aura</option>
             <option>Purple Aura</option>
           </select>
+          <div class="multi-toolbar">
+            <button type="button" class="chip-btn" data-action="select-all" data-target="editCategory">Select all</button>
+            <button type="button" class="chip-btn" data-action="clear" data-target="editCategory">Clear</button>
+          </div>
+          <div class="multi-picker" data-select="editCategory"></div>
         </div>
         <div class="field">
           <label for="editType">Type</label>
@@ -220,13 +247,18 @@
       <div class="two">
         <div class="field">
           <label for="editMood">Mood</label>
-          <select id="editMood" multiple>
+          <select id="editMood" class="multi-select-native" multiple>
             <option>Red</option>
             <option>Blue</option>
             <option>Purple</option>
             <option>Black</option>
             <option>Mixed</option>
           </select>
+          <div class="multi-toolbar">
+            <button type="button" class="chip-btn" data-action="select-all" data-target="editMood">Select all</button>
+            <button type="button" class="chip-btn" data-action="clear" data-target="editMood">Clear</button>
+          </div>
+          <div class="multi-picker" data-select="editMood"></div>
         </div>
         <div class="field">
           <label for="editTags">Extra tags</label>
@@ -278,6 +310,14 @@
     };
 
     document.getElementById("refreshBtn").onclick = loadWallpapers;
+    ["category", "mood", "editCategory", "editMood"].forEach(initMultiPicker);
+    document.querySelectorAll(".multi-toolbar .chip-btn[data-action][data-target]").forEach(button => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.target;
+        if (!target) return;
+        setAllMultiOptions(target, button.dataset.action === "select-all");
+      });
+    });
 
     document.getElementById("file").addEventListener("change", event => {
       const file = event.target.files[0];
@@ -311,6 +351,47 @@
       return values.length ? values : [fallback];
     }
 
+    function updateMultiPickerState(selectId) {
+      const select = document.getElementById(selectId);
+      const picker = document.querySelector(`.multi-picker[data-select="${selectId}"]`);
+      if (!select || !picker) return;
+      const selectedValues = new Set(Array.from(select.selectedOptions).map(option => option.value));
+      picker.querySelectorAll(".chip-btn").forEach(button => {
+        const isSelected = selectedValues.has(button.dataset.value);
+        button.classList.toggle("selected", isSelected);
+        button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      });
+    }
+
+    function initMultiPicker(selectId) {
+      const select = document.getElementById(selectId);
+      const picker = document.querySelector(`.multi-picker[data-select="${selectId}"]`);
+      if (!select || !picker) return;
+      picker.innerHTML = "";
+      Array.from(select.options).forEach(option => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip-btn";
+        chip.textContent = option.text;
+        chip.dataset.value = option.value;
+        chip.addEventListener("click", () => {
+          option.selected = !option.selected;
+          updateMultiPickerState(selectId);
+        });
+        picker.appendChild(chip);
+      });
+      updateMultiPickerState(selectId);
+    }
+
+    function setAllMultiOptions(selectId, selected) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      Array.from(select.options).forEach(option => {
+        option.selected = selected;
+      });
+      updateMultiPickerState(selectId);
+    }
+
     function setSelectedValues(selectId, values, fallback) {
       const options = document.getElementById(selectId).options;
       const selected = new Set(cleanList(values).map(item => item.toLowerCase()));
@@ -323,6 +404,7 @@
         const fallbackOption = Array.from(options).find(option => option.value.toLowerCase() === fallback.toLowerCase());
         if (fallbackOption) fallbackOption.selected = true;
       }
+      updateMultiPickerState(selectId);
     }
 
     function slugify(value) {
