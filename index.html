@@ -7,10 +7,11 @@
   <title>Dark Anime Walls | 4K Anime Wallpapers</title>
   <meta name="description" content="Download premium dark anime wallpapers for mobile 9:16 and desktop 16:9. Daily cinematic anime wallpaper drops in original quality." />
   <meta name="keywords" content="dark anime wallpapers, anime wallpapers, 4K wallpapers, mobile wallpapers, desktop wallpapers, manga wallpapers, 9:16 wallpaper, 16:9 wallpaper" />
+  <link rel="icon" type="image/png" href="/Logo/Logo.png" />
   <meta property="og:title" content="Dark Anime Walls | 4K Anime Wallpapers" />
   <meta property="og:description" content="Premium dark anime wallpapers for mobile and desktop. Preview and download in original quality." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://dummyimage.com/1200x630/09060f/ff1744&text=Dark+Anime+Walls" />
+  <meta property="og:image" content="/Logo/Logo.png" />
 
   <style>
     :root {
@@ -66,14 +67,10 @@
     }
     .nav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .brand { display: flex; align-items: center; gap: 12px; font-weight: 950; letter-spacing: -.04em; }
-    .mark {
-      width: 42px; height: 42px; border-radius: 14px;
-      background: linear-gradient(135deg, var(--red), var(--purple));
-      box-shadow: 0 0 34px rgba(255,23,68,.35);
-      display: grid; place-items: center;
-    }
-    .mark:before {
-      content: ""; width: 18px; height: 26px; border: 2px solid #fff; border-radius: 9px 9px 4px 4px; transform: rotate(14deg);
+    .brand-logo {
+      width: 42px; height: 42px; border-radius: 14px; object-fit: cover;
+      border: 1px solid rgba(255,255,255,.16); box-shadow: 0 0 24px rgba(255,23,68,.25);
+      flex-shrink: 0;
     }
     .links { display: flex; align-items: center; gap: 8px; padding: 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 999px; background: rgba(255,255,255,.045); }
     .links a { color: var(--muted); padding: 9px 13px; border-radius: 999px; font-size: .88rem; transition: .2s; }
@@ -260,7 +257,7 @@
 <body>
   <nav class="nav">
     <div class="container nav-inner">
-      <a class="brand" href="#home"><span class="mark"></span><span>Dark Anime Walls</span></a>
+      <a class="brand" href="#home"><img class="brand-logo" src="/Logo/Logo.png" alt="Dark Anime Walls logo"><span>Dark Anime Walls</span></a>
       <div class="links">
         <a href="#drops">Drops</a>
         <a href="#mobile">Mobile</a>
@@ -409,7 +406,7 @@
   <footer>
     <div class="container footer-grid">
       <div>
-        <strong style="color:#fff;">Dark Anime Walls</strong>
+        <strong style="color:#fff;display:flex;align-items:center;gap:10px;"><img class="brand-logo" src="/Logo/Logo.png" alt="Dark Anime Walls logo" style="width:34px;height:34px;border-radius:10px;">Dark Anime Walls</strong>
         <p style="margin-top:8px;line-height:1.6;">Fan-style anime wallpaper edits and original AI-assisted designs. Not affiliated with any anime studio.<br>© 2026 Dark Anime Walls. All rights reserved.</p>
       </div>
       <div class="footer-links">

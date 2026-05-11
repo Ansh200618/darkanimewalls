@@ -1,49 +1,62 @@
-# Dark Anime Walls — Cloudinary Functional Website
+# Dark Anime Walls Website
 
-This version uses Cloudinary as the image backend and keeps the public website completely separate from the private studio page.
+This project gives you:
 
-## What is included
+- a **public wallpaper website** (`index.html`) for your visitors
+- a **private upload page** (`studio.html`) only for you
+- API files that connect everything to Cloudinary storage
 
-- `index.html` — public user website
-- `studio.html` — private studio page
-- `/api/wallpapers.js` — reads approved Cloudinary images
-- `/api/sign-upload.js` — creates a secure upload signature
-- `/api/delete-wallpaper.js` — deletes a Cloudinary image
-- `package.json` — Vercel project config
+It is designed to be simple, clean, and easy to manage.
 
-## Public website behavior
+---
 
-The public website does not mention studio, uploads, backend, management, Cloudinary, or dashboard.
-Users can only:
+## What visitors can do
+
+On the public website, people can:
+
 - browse wallpapers
-- search/filter wallpapers
-- preview wallpapers
-- download original-quality images
-- send custom requests
-- contact for collabs
+- search and filter wallpapers
+- open previews
+- download original-quality files
+- send custom wallpaper requests
+- contact you for collaborations
 
-## Studio page
+Visitors do **not** see your private upload tools.
 
-Open it manually:
+---
+
+## Your private manager page
+
+Your private page is:
 
 ```text
 https://your-domain.com/studio.html
 ```
 
-Do not add this link to the public navbar.
+Use this page to upload and delete wallpapers.
 
-## Required Cloudinary setup
+Important:
+- Keep this link private.
+- Do not put it in your public menu.
 
-1. Create a Cloudinary account.
-2. Go to Dashboard.
-3. Copy:
-   - Cloud name
+---
+
+## Before you start
+
+You need:
+
+1. A Cloudinary account
+2. A Vercel project
+3. Your Cloudinary details from the dashboard:
+   - Cloud Name
    - API Key
    - API Secret
 
-## Vercel environment variables
+---
 
-In Vercel Project Settings → Environment Variables, add:
+## Vercel settings you must add
+
+In **Vercel → Project Settings → Environment Variables**, add:
 
 ```text
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -54,26 +67,25 @@ CLOUDINARY_TAG=dark-anime-walls
 CLOUDINARY_FOLDER=dark-anime-walls
 ```
 
-Important:
-Never paste your Cloudinary API Secret into `index.html` or `studio.html`.
-The secret must stay inside Vercel environment variables only.
+Security rule:
+- Never place your API Secret directly inside HTML files.
+- Keep secrets only in Vercel environment variables.
 
-## How upload works
+---
 
-1. You open `/studio.html`.
-2. You enter your `STUDIO_PASSWORD`.
-3. The studio page asks `/api/sign-upload` for a secure upload signature.
-4. The original image uploads directly to Cloudinary.
-5. The public website reads images tagged `dark-anime-walls`.
-6. Users download the Cloudinary original-quality image.
+## How uploading works (simple flow)
 
-## Uploading high quality images
+1. Open `/studio.html`
+2. Enter your private studio password
+3. Upload your original image (PNG/JPG/WebP)
+4. Image is saved to Cloudinary
+5. It appears automatically on the public website
 
-Upload the original PNG/JPG/WebP file.
-This project does not compress the image before upload.
-Cloudinary stores the original asset and the download button uses the original uploaded file.
+The file stays in original quality for downloads.
 
-## Local testing
+---
+
+## Run locally on your computer
 
 Install Vercel CLI:
 
@@ -81,39 +93,43 @@ Install Vercel CLI:
 npm i -g vercel
 ```
 
-Run locally:
+Start the project:
 
 ```bash
 vercel dev
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:3000
 http://localhost:3000/studio.html
 ```
 
-## Deploying
+---
 
-1. Upload this folder to GitHub.
-2. Import the repo in Vercel.
-3. Add environment variables.
-4. Deploy.
-5. Open `/studio.html` and upload your first wallpaper.
+## Deploy steps
 
-## Replace these values in HTML
+1. Push this project to GitHub
+2. Import the repository in Vercel
+3. Add all required environment variables
+4. Deploy
+5. Open `/studio.html` and upload your first wallpaper
 
-In `index.html`, replace:
+---
+
+## Update your contact details
+
+In `index.html`, replace these placeholders with your real details:
 
 ```text
 darkanimewalls
 contact@darkanimewalls.com
 ```
 
-with your real Instagram username and email.
+---
 
-## Security note
+## Notes
 
-This is a clean beginner-friendly setup for one studio user.
-For a bigger public product, add a full authentication provider later.
+- This setup is best for a single owner/admin.
+- If you plan to grow into a bigger team, add a full authentication system later.
