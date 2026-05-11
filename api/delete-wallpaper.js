@@ -19,17 +19,17 @@ module.exports = async function handler(req, res) {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const studioPassword = process.env.STUDIO_PASSWORD;
 
-  if (!cloudName || !apiKey || !apiSecret || !adminPassword) {
+  if (!cloudName || !apiKey || !apiSecret || !studioPassword) {
     res.status(500).json({ error: "Server environment variables are missing." });
     return;
   }
 
   const { password, public_id } = req.body || {};
 
-  if (password !== adminPassword) {
-    res.status(401).json({ error: "Invalid admin password." });
+  if (password !== studioPassword) {
+    res.status(401).json({ error: "Invalid studio password." });
     return;
   }
 

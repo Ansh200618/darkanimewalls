@@ -72,14 +72,14 @@
       <h1>Private wallpaper manager.</h1>
       <p>Enter your private password to upload and manage the Cloudinary wallpaper collection.</p>
       <div class="field" style="margin-top:22px;">
-        <label for="password">Admin password</label>
-        <input id="password" type="password" placeholder="Enter ADMIN_PASSWORD">
+        <label for="password">Studio password</label>
+        <input id="password" type="password" placeholder="Enter STUDIO_PASSWORD">
       </div>
       <button class="btn primary" id="loginBtn">Unlock</button>
       <div class="note">This page is separate from the public website. Do not link it in your navbar.</div>
     </section>
 
-    <section id="adminView" class="hidden">
+    <section id="studioView" class="hidden">
       <div class="top">
         <div class="brand"><span class="mark"></span><span>Dark Anime Walls Control Room</span></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -162,36 +162,33 @@
   </div>
 
   <script>
-    let adminPassword = localStorage.getItem("daw_admin_password") || "";
+    let studioPassword = "";
     const loginView = document.getElementById("loginView");
-    const adminView = document.getElementById("adminView");
+    const studioView = document.getElementById("studioView");
     const statusBox = document.getElementById("status");
     const list = document.getElementById("list");
 
-    function showAdmin() {
+    function showStudio() {
       loginView.classList.add("hidden");
-      adminView.classList.remove("hidden");
+      studioView.classList.remove("hidden");
       loadWallpapers();
     }
 
     function showLogin() {
-      adminView.classList.add("hidden");
+      studioView.classList.add("hidden");
       loginView.classList.remove("hidden");
     }
-
-    if (adminPassword) showAdmin();
 
     document.getElementById("loginBtn").onclick = () => {
       const value = document.getElementById("password").value.trim();
       if (!value) return;
-      adminPassword = value;
-      localStorage.setItem("daw_admin_password", value);
-      showAdmin();
+      studioPassword = value;
+      showStudio();
     };
 
     document.getElementById("logoutBtn").onclick = () => {
-      localStorage.removeItem("daw_admin_password");
-      adminPassword = "";
+      studioPassword = "";
+      document.getElementById("password").value = "";
       showLogin();
     };
 
@@ -228,7 +225,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            password: adminPassword,
+            password: studioPassword,
             title: document.getElementById("title").value,
             category: document.getElementById("category").value,
             type: document.getElementById("type").value,
@@ -268,7 +265,9 @@
       } catch (error) {
         setStatus(error.message);
         if (error.message.toLowerCase().includes("password")) {
-          localStorage.removeItem("daw_admin_password");
+          studioPassword = "";
+          document.getElementById("password").value = "";
+          showLogin();
         }
       }
     });
@@ -308,7 +307,7 @@
         const response = await fetch("/api/delete-wallpaper", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: adminPassword, public_id: publicId })
+          body: JSON.stringify({ password: studioPassword, public_id: publicId })
         });
 
         const data = await response.json();
