@@ -162,7 +162,7 @@
   </div>
 
   <script>
-    let studioPassword = localStorage.getItem("daw_studio_password") || "";
+    let studioPassword = "";
     const loginView = document.getElementById("loginView");
     const studioView = document.getElementById("studioView");
     const statusBox = document.getElementById("status");
@@ -179,19 +179,16 @@
       loginView.classList.remove("hidden");
     }
 
-    if (studioPassword) showStudio();
-
     document.getElementById("loginBtn").onclick = () => {
       const value = document.getElementById("password").value.trim();
       if (!value) return;
       studioPassword = value;
-      localStorage.setItem("daw_studio_password", value);
       showStudio();
     };
 
     document.getElementById("logoutBtn").onclick = () => {
-      localStorage.removeItem("daw_studio_password");
       studioPassword = "";
+      document.getElementById("password").value = "";
       showLogin();
     };
 
@@ -268,7 +265,9 @@
       } catch (error) {
         setStatus(error.message);
         if (error.message.toLowerCase().includes("password")) {
-          localStorage.removeItem("daw_studio_password");
+          studioPassword = "";
+          document.getElementById("password").value = "";
+          showLogin();
         }
       }
     });
