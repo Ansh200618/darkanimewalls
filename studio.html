@@ -68,6 +68,7 @@
       border-radius:999px;padding:8px 12px;line-height:1;font-weight:800;cursor:pointer;transition:.2s;
     }
     .chip-btn:hover{transform:translateY(-1px);border-color:rgba(0,200,255,.6)}
+    .chip-btn:focus-visible{outline:none;border-color:rgba(0,200,255,.75);box-shadow:0 0 0 3px rgba(0,200,255,.22)}
     .chip-btn.selected{border-color:rgba(0,200,255,.66);background:linear-gradient(135deg,rgba(0,200,255,.25),rgba(124,58,237,.35));box-shadow:0 0 0 2px rgba(0,200,255,.14)}
     textarea{min-height:110px;resize:vertical}
     .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
@@ -145,7 +146,7 @@
           <div class="two">
             <div class="field">
               <label for="category">Category</label>
-              <select id="category" class="multi-select-native" multiple>
+              <select id="category" class="multi-select-native" multiple tabindex="-1" aria-hidden="true">
                 <option selected>Dark Anime</option>
                 <option>Manga Style</option>
                 <option>Red Aura</option>
@@ -153,10 +154,10 @@
                 <option>Purple Aura</option>
               </select>
               <div class="multi-toolbar">
-                <button type="button" class="chip-btn" data-action="select-all" data-target="category">Select all</button>
-                <button type="button" class="chip-btn" data-action="clear" data-target="category">Clear</button>
+                <button type="button" class="chip-btn" data-action="select-all" data-target="category" aria-label="Select all category options">Select all</button>
+                <button type="button" class="chip-btn" data-action="clear" data-target="category" aria-label="Clear selected category options">Clear</button>
               </div>
-              <div class="multi-picker" data-select="category"></div>
+              <div class="multi-picker" data-select="category" role="group" aria-label="Category options"></div>
             </div>
 
             <div class="field">
@@ -171,7 +172,7 @@
           <div class="two">
             <div class="field">
               <label for="mood">Mood</label>
-              <select id="mood" class="multi-select-native" multiple>
+              <select id="mood" class="multi-select-native" multiple tabindex="-1" aria-hidden="true">
                 <option>Red</option>
                 <option>Blue</option>
                 <option>Purple</option>
@@ -179,10 +180,10 @@
                 <option selected>Mixed</option>
               </select>
               <div class="multi-toolbar">
-                <button type="button" class="chip-btn" data-action="select-all" data-target="mood">Select all</button>
-                <button type="button" class="chip-btn" data-action="clear" data-target="mood">Clear</button>
+                <button type="button" class="chip-btn" data-action="select-all" data-target="mood" aria-label="Select all mood options">Select all</button>
+                <button type="button" class="chip-btn" data-action="clear" data-target="mood" aria-label="Clear selected mood options">Clear</button>
               </div>
-              <div class="multi-picker" data-select="mood"></div>
+              <div class="multi-picker" data-select="mood" role="group" aria-label="Mood options"></div>
             </div>
 
             <div class="field">
@@ -223,7 +224,7 @@
       <div class="two">
         <div class="field">
           <label for="editCategory">Category</label>
-          <select id="editCategory" class="multi-select-native" multiple>
+          <select id="editCategory" class="multi-select-native" multiple tabindex="-1" aria-hidden="true">
             <option>Dark Anime</option>
             <option>Manga Style</option>
             <option>Red Aura</option>
@@ -231,10 +232,10 @@
             <option>Purple Aura</option>
           </select>
           <div class="multi-toolbar">
-            <button type="button" class="chip-btn" data-action="select-all" data-target="editCategory">Select all</button>
-            <button type="button" class="chip-btn" data-action="clear" data-target="editCategory">Clear</button>
+            <button type="button" class="chip-btn" data-action="select-all" data-target="editCategory" aria-label="Select all edit category options">Select all</button>
+            <button type="button" class="chip-btn" data-action="clear" data-target="editCategory" aria-label="Clear selected edit category options">Clear</button>
           </div>
-          <div class="multi-picker" data-select="editCategory"></div>
+          <div class="multi-picker" data-select="editCategory" role="group" aria-label="Edit category options"></div>
         </div>
         <div class="field">
           <label for="editType">Type</label>
@@ -247,7 +248,7 @@
       <div class="two">
         <div class="field">
           <label for="editMood">Mood</label>
-          <select id="editMood" class="multi-select-native" multiple>
+          <select id="editMood" class="multi-select-native" multiple tabindex="-1" aria-hidden="true">
             <option>Red</option>
             <option>Blue</option>
             <option>Purple</option>
@@ -255,10 +256,10 @@
             <option>Mixed</option>
           </select>
           <div class="multi-toolbar">
-            <button type="button" class="chip-btn" data-action="select-all" data-target="editMood">Select all</button>
-            <button type="button" class="chip-btn" data-action="clear" data-target="editMood">Clear</button>
+            <button type="button" class="chip-btn" data-action="select-all" data-target="editMood" aria-label="Select all edit mood options">Select all</button>
+            <button type="button" class="chip-btn" data-action="clear" data-target="editMood" aria-label="Clear selected edit mood options">Clear</button>
           </div>
-          <div class="multi-picker" data-select="editMood"></div>
+          <div class="multi-picker" data-select="editMood" role="group" aria-label="Edit mood options"></div>
         </div>
         <div class="field">
           <label for="editTags">Extra tags</label>
