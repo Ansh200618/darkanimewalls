@@ -14,6 +14,12 @@
       --font:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     *{box-sizing:border-box;margin:0;padding:0}
+    :is(body,select[multiple],textarea,.modal-card,.list){scrollbar-width:thin;scrollbar-color:transparent transparent}
+    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar{width:10px;height:10px}
+    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar-track{background:transparent}
+    :is(body,select[multiple],textarea,.modal-card,.list)::-webkit-scrollbar-thumb{background:transparent;border-radius:999px;border:2px solid transparent;background-clip:content-box}
+    :is(body,select[multiple],textarea,.modal-card,.list):hover::-webkit-scrollbar-thumb,:is(body,select[multiple],textarea,.modal-card,.list):focus-within::-webkit-scrollbar-thumb{background:rgba(139,92,246,.55)}
+    :is(body,select[multiple],textarea,.modal-card,.list):hover,:is(body,select[multiple],textarea,.modal-card,.list):focus-within{scrollbar-color:rgba(139,92,246,.55) rgba(255,255,255,.05)}
     body{
       font-family:var(--font); color:var(--text); min-height:100vh;
       background:radial-gradient(circle at 18% 8%,rgba(255,23,68,.24),transparent 30%),radial-gradient(circle at 80% 18%,rgba(0,200,255,.17),transparent 32%),var(--bg);
@@ -45,13 +51,21 @@
     input,select,textarea{
       width:100%;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;border-radius:15px;min-height:48px;padding:12px 14px;outline:none;
     }
+    input:focus,select:focus,textarea:focus{border-color:rgba(0,200,255,.5);box-shadow:0 0 0 3px rgba(0,200,255,.12)}
     select[multiple]{min-height:130px;padding:8px}
     select[multiple] option{padding:8px 10px}
     select option{color:#111}
     textarea{min-height:110px;resize:vertical}
-    .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
     .drop{
-      border:1px dashed rgba(255,255,255,.22);border-radius:22px;padding:22px;text-align:center;background:rgba(0,0,0,.18);margin-bottom:14px
+      border:1px dashed rgba(255,255,255,.22);border-radius:22px;padding:18px;background:rgba(0,0,0,.18);margin-bottom:14px
+    }
+    .file-input{padding:10px;min-height:54px}
+    .file-input::file-selector-button{
+      border:0;border-radius:10px;padding:9px 12px;margin-right:10px;background:linear-gradient(135deg,var(--red),var(--purple));color:#fff;font-weight:800;cursor:pointer
+    }
+    .file-input::-webkit-file-upload-button{
+      border:0;border-radius:10px;padding:9px 12px;margin-right:10px;background:linear-gradient(135deg,var(--red),var(--purple));color:#fff;font-weight:800;cursor:pointer
     }
     .preview{display:none;margin-top:14px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
     .preview img{width:100%;max-height:360px;object-fit:contain;background:#05040a}
@@ -105,7 +119,7 @@
           <h2>Upload new wallpaper</h2>
 
           <div class="drop">
-            <input id="file" type="file" accept="image/*" required>
+            <input id="file" class="file-input" type="file" accept="image/*" required>
             <div class="preview" id="previewBox"><img id="previewImg" alt="Selected wallpaper preview"></div>
           </div>
 

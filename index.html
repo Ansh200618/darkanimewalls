@@ -30,6 +30,12 @@
       --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    :is(body, .filters, .modal-card) { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+    :is(body, .filters, .modal-card)::-webkit-scrollbar { width: 10px; height: 10px; }
+    :is(body, .filters, .modal-card)::-webkit-scrollbar-track { background: transparent; }
+    :is(body, .filters, .modal-card)::-webkit-scrollbar-thumb { background: transparent; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+    :is(body, .filters, .modal-card):hover::-webkit-scrollbar-thumb, :is(body, .filters, .modal-card):focus-within::-webkit-scrollbar-thumb { background: rgba(139,92,246,.55); }
+    :is(body, .filters, .modal-card):hover, :is(body, .filters, .modal-card):focus-within { scrollbar-color: rgba(139,92,246,.55) rgba(255,255,255,.05); }
     html { scroll-behavior: smooth; }
     body {
       font-family: var(--font);
@@ -139,8 +145,7 @@
       min-height: 52px; width: 100%; border-radius: 999px; border: 1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.065); color: #fff; padding: 0 18px; outline: none;
     }
-    .filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
-    .filters::-webkit-scrollbar { display: none; }
+    .filters { display: flex; gap: 8px; overflow-x: auto; }
     .filter {
       white-space: nowrap; min-height: 42px; border-radius: 999px; padding: 0 14px;
       border: 1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.06);
@@ -154,8 +159,8 @@
       box-shadow: 0 22px 60px rgba(0,0,0,.22); transition: .24s ease;
     }
     .card:hover { transform: translateY(-8px) rotateX(2deg) rotateY(-2deg); border-color: rgba(255,255,255,.24); box-shadow: 0 32px 90px rgba(0,0,0,.36); }
-    .thumb { height: 330px; width: 100%; object-fit: cover; background: #111; }
-    .card.desktop .thumb { height: 220px; }
+    .thumb { height: 330px; width: 100%; object-fit: cover; background: #111; object-position: center; }
+    .card.desktop .thumb { height: 220px; object-fit: contain; background: #05040a; padding: 8px; }
     .body { padding: 17px; }
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 11px; }
     .tag { display: inline-flex; padding: 6px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.09); font-size: .72rem; font-weight: 900; }
@@ -525,6 +530,9 @@
         return;
       }
       element.style.backgroundImage = `url("${wallpaper.imageUrl}")`;
+      element.style.backgroundSize = isDesktopWallpaper(wallpaper) ? "contain" : "cover";
+      element.style.backgroundRepeat = "no-repeat";
+      element.style.backgroundPosition = "center";
     }
 
     function updateHeroShowcase() {
