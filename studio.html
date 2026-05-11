@@ -45,6 +45,8 @@
     input,select,textarea{
       width:100%;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;border-radius:15px;min-height:48px;padding:12px 14px;outline:none;
     }
+    select[multiple]{min-height:130px;padding:8px}
+    select[multiple] option{padding:8px 10px}
     select option{color:#111}
     textarea{min-height:110px;resize:vertical}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -59,9 +61,18 @@
     .item img{width:120px;height:86px;object-fit:cover;border-radius:14px;background:#111}
     .item b{display:block;margin-bottom:5px}
     .item span{color:var(--muted);font-size:.88rem}
+    .item-actions{display:grid;gap:8px}
     .login{max-width:480px;margin:12vh auto 0}
     .hidden{display:none!important}
     .note{padding:14px 16px;border-radius:18px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.18);margin-top:16px}
+    .hint{color:var(--muted);font-size:.82rem;line-height:1.5}
+    .modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
+      display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+    }
+    .modal.show{display:flex}
+    .modal-card{width:min(700px,100%);max-height:90vh;overflow:auto}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
     @media(max-width:900px){.grid,.two{grid-template-columns:1fr}.item{grid-template-columns:90px 1fr}.item img{width:90px;height:70px}.item .btn{grid-column:1/-1}.top{align-items:start;flex-direction:column}}
   </style>
 </head>
@@ -106,13 +117,14 @@
           <div class="two">
             <div class="field">
               <label for="category">Category</label>
-              <select id="category">
-                <option>Dark Anime</option>
+              <select id="category" multiple>
+                <option selected>Dark Anime</option>
                 <option>Manga Style</option>
                 <option>Red Aura</option>
                 <option>Blue Aura</option>
                 <option>Purple Aura</option>
               </select>
+              <div class="hint">Select multiple options (Ctrl/Cmd + click)</div>
             </div>
 
             <div class="field">
@@ -127,13 +139,14 @@
           <div class="two">
             <div class="field">
               <label for="mood">Mood</label>
-              <select id="mood">
+              <select id="mood" multiple>
                 <option>Red</option>
                 <option>Blue</option>
                 <option>Purple</option>
                 <option>Black</option>
-                <option>Mixed</option>
+                <option selected>Mixed</option>
               </select>
+              <div class="hint">Select multiple options (Ctrl/Cmd + click)</div>
             </div>
 
             <div class="field">
@@ -161,12 +174,70 @@
     </section>
   </div>
 
+  <div id="editModal" class="modal">
+    <form id="editForm" class="card modal-card">
+      <div class="modal-head">
+        <h2>Edit wallpaper details</h2>
+        <button type="button" class="btn" id="closeEditBtn">Close</button>
+      </div>
+      <div class="field">
+        <label for="editTitle">Title</label>
+        <input id="editTitle" type="text" required>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="editCategory">Category</label>
+          <select id="editCategory" multiple>
+            <option>Dark Anime</option>
+            <option>Manga Style</option>
+            <option>Red Aura</option>
+            <option>Blue Aura</option>
+            <option>Purple Aura</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="editType">Type</label>
+          <select id="editType">
+            <option>Mobile 9:16</option>
+            <option>Desktop 16:9</option>
+          </select>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="editMood">Mood</label>
+          <select id="editMood" multiple>
+            <option>Red</option>
+            <option>Blue</option>
+            <option>Purple</option>
+            <option>Black</option>
+            <option>Mixed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="editTags">Extra tags</label>
+          <input id="editTags" type="text" placeholder="samurai, glowing-eyes, lockscreen">
+        </div>
+      </div>
+      <div class="field">
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription"></textarea>
+      </div>
+      <button class="btn primary" type="submit">Save changes</button>
+      <div id="editStatus" class="status">Ready.</div>
+    </form>
+  </div>
+
   <script>
     let studioPassword = "";
+    let wallpapersData = [];
     const loginView = document.getElementById("loginView");
     const studioView = document.getElementById("studioView");
     const statusBox = document.getElementById("status");
     const list = document.getElementById("list");
+    const editModal = document.getElementById("editModal");
+    const editForm = document.getElementById("editForm");
+    const editStatus = document.getElementById("editStatus");
 
     function showStudio() {
       loginView.classList.add("hidden");
@@ -209,6 +280,51 @@
       statusBox.textContent = text;
     }
 
+    function setEditStatus(text) {
+      editStatus.textContent = text;
+    }
+
+    function toList(value) {
+      return Array.isArray(value) ? value : String(value || "").split(",");
+    }
+
+    function cleanList(value) {
+      return toList(value).map(item => String(item || "").trim()).filter(Boolean);
+    }
+
+    function getSelectedValues(selectId, fallback) {
+      const values = Array.from(document.getElementById(selectId).selectedOptions).map(option => option.value.trim()).filter(Boolean);
+      return values.length ? values : [fallback];
+    }
+
+    function setSelectedValues(selectId, values, fallback) {
+      const options = document.getElementById(selectId).options;
+      const selected = new Set(cleanList(values).map(item => item.toLowerCase()));
+      let picked = false;
+      Array.from(options).forEach(option => {
+        option.selected = selected.has(option.value.toLowerCase());
+        if (option.selected) picked = true;
+      });
+      if (!picked && fallback) {
+        const fallbackOption = Array.from(options).find(option => option.value.toLowerCase() === fallback.toLowerCase());
+        if (fallbackOption) fallbackOption.selected = true;
+      }
+    }
+
+    function slugify(value) {
+      return String(value || "").trim().toLowerCase().replace(/\s+/g, "-");
+    }
+
+    function getExtraTagsFromWallpaper(wallpaper) {
+      const derived = new Set([
+        "dark-anime-walls",
+        ...cleanList(wallpaper.category).map(slugify),
+        slugify(wallpaper.type),
+        ...cleanList(wallpaper.mood).map(slugify)
+      ]);
+      return (wallpaper.tags || []).filter(tag => tag && !derived.has(tag.toLowerCase()));
+    }
+
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -227,9 +343,9 @@
           body: JSON.stringify({
             password: studioPassword,
             title: document.getElementById("title").value,
-            category: document.getElementById("category").value,
+            category: getSelectedValues("category", "Dark Anime"),
             type: document.getElementById("type").value,
-            mood: document.getElementById("mood").value,
+            mood: getSelectedValues("mood", "Mixed"),
             tags: document.getElementById("tags").value,
             description: document.getElementById("description").value
           })
@@ -260,6 +376,8 @@
         setStatus(`Uploaded successfully.\nPublic ID: ${uploadData.public_id}\nResolution: ${uploadData.width}x${uploadData.height}`);
 
         event.target.reset();
+        setSelectedValues("category", ["Dark Anime"], "Dark Anime");
+        setSelectedValues("mood", ["Mixed"], "Mixed");
         document.getElementById("previewBox").style.display = "none";
         await loadWallpapers();
       } catch (error) {
@@ -278,21 +396,25 @@
         const response = await fetch("/api/wallpapers");
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load wallpapers.");
+        wallpapersData = data.wallpapers || [];
 
-        if (!data.wallpapers.length) {
+        if (!wallpapersData.length) {
           list.innerHTML = "<p>No wallpapers uploaded yet.</p>";
           return;
         }
 
-        list.innerHTML = data.wallpapers.map(w => `
+        list.innerHTML = wallpapersData.map(w => `
           <div class="item">
             <img src="${w.imageUrl}" alt="">
             <div>
               <b>${escapeHtml(w.title)}</b>
-              <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.resolution)}</span><br>
-              <span>${escapeHtml(w.public_id)}</span>
+               <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
+               <span>${escapeHtml(w.public_id)}</span>
+             </div>
+            <div class="item-actions">
+              <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
+              <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
             </div>
-            <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
           </div>
         `).join("");
       } catch (error) {
@@ -318,6 +440,64 @@
         alert(error.message);
       }
     }
+
+    function openEditWallpaper(publicId) {
+      const wallpaper = wallpapersData.find(item => item.public_id === publicId);
+      if (!wallpaper) return;
+
+      editForm.dataset.publicId = wallpaper.public_id;
+      document.getElementById("editTitle").value = wallpaper.title || "";
+      document.getElementById("editType").value = wallpaper.type || "Mobile 9:16";
+      setSelectedValues("editCategory", cleanList(wallpaper.category), "Dark Anime");
+      setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
+      document.getElementById("editDescription").value = wallpaper.description || "";
+      document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
+      setEditStatus(`Editing: ${wallpaper.public_id}`);
+      editModal.classList.add("show");
+    }
+
+    function closeEditWallpaper() {
+      editModal.classList.remove("show");
+      editForm.dataset.publicId = "";
+    }
+
+    document.getElementById("closeEditBtn").addEventListener("click", closeEditWallpaper);
+    editModal.addEventListener("click", event => {
+      if (event.target === editModal) closeEditWallpaper();
+    });
+
+    editForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const publicId = editForm.dataset.publicId;
+      if (!publicId) return;
+
+      setEditStatus("Saving changes...");
+
+      try {
+        const response = await fetch("/api/update-wallpaper", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password: studioPassword,
+            public_id: publicId,
+            title: document.getElementById("editTitle").value,
+            category: getSelectedValues("editCategory", "Dark Anime"),
+            type: document.getElementById("editType").value,
+            mood: getSelectedValues("editMood", "Mixed"),
+            tags: document.getElementById("editTags").value,
+            description: document.getElementById("editDescription").value
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Update failed.");
+
+        setEditStatus("Wallpaper updated successfully.");
+        closeEditWallpaper();
+        await loadWallpapers();
+      } catch (error) {
+        setEditStatus(error.message);
+      }
+    });
 
     function escapeHtml(text = "") {
       return String(text).replace(/[&<>"']/g, char => ({

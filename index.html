@@ -109,6 +109,11 @@
       height: 100%; border-radius: 34px; overflow: hidden; position: relative;
       background: radial-gradient(circle at 35% 30%, rgba(255,23,68,.76), transparent 25%), radial-gradient(circle at 66% 75%, rgba(0,200,255,.58), transparent 28%), linear-gradient(180deg,#080711,#160711,#05040a);
     }
+    .screen-image {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+      display: none;
+    }
+    .screen-image.show { display: block; }
     .screen:before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.08) 23px,transparent 25px); }
     .screen-copy { position: absolute; left: 24px; right: 24px; bottom: 38px; z-index: 2; }
     .screen-copy small { display: inline-flex; margin-bottom: 10px; padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.14); }
@@ -121,6 +126,8 @@
     .float-card.one { top: 18%; right: -2%; transform: rotate(7deg); }
     .float-card.two { bottom: 18%; left: -4%; transform: rotate(-8deg); animation-delay: -3s; }
     .float-img { height: 150px; background-size: cover; background-position: center; }
+    .float-card.one .float-img { background: linear-gradient(120deg,rgba(0,200,255,.72),rgba(5,4,10,.54),rgba(139,92,246,.72)); }
+    .float-card.two .float-img { background: linear-gradient(120deg,rgba(255,23,68,.75),rgba(5,4,10,.58),rgba(255,209,102,.35)); }
     .float-label { display: flex; justify-content: space-between; padding: 12px 14px; color: var(--muted); font-weight: 800; font-size: .82rem; }
     .section { padding: 92px 0; }
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 30px; }
@@ -284,17 +291,18 @@
         </div>
         <div class="hero-art reveal">
           <div class="float-card one">
-            <div class="float-img" style="background:linear-gradient(120deg,rgba(0,200,255,.72),rgba(5,4,10,.54),rgba(139,92,246,.72));"></div>
-            <div class="float-label"><span>Desktop 16:9</span><span>Blue Aura</span></div>
+            <div id="heroDesktopImage" class="float-img"></div>
+            <div class="float-label"><span id="heroDesktopType">Desktop 16:9</span><span id="heroDesktopDetail">Blue Aura</span></div>
           </div>
           <div class="phone">
-            <div class="screen">
-              <div class="screen-copy"><small>Mobile 9:16</small><h3>Dark Aura<br>Lockscreen</h3></div>
+            <div id="heroMobileScreen" class="screen">
+              <img id="heroMobileImage" class="screen-image" alt="Latest mobile wallpaper preview" loading="lazy">
+              <div class="screen-copy"><small id="heroMobileType">Mobile 9:16</small><h3 id="heroMobileTitle">Dark Aura Lockscreen</h3></div>
             </div>
           </div>
           <div class="float-card two">
-            <div class="float-img" style="background:linear-gradient(120deg,rgba(255,23,68,.75),rgba(5,4,10,.58),rgba(255,209,102,.35));"></div>
-            <div class="float-label"><span>Manga Style</span><span>Red Glow</span></div>
+            <div id="heroAccentImage" class="float-img"></div>
+            <div class="float-label"><span id="heroAccentType">Manga Style</span><span id="heroAccentDetail">Red Glow</span></div>
           </div>
         </div>
       </div>
@@ -449,6 +457,15 @@
     const emptyState = document.getElementById("emptyState");
     const searchInput = document.getElementById("searchInput");
     const filters = document.getElementById("filters");
+    const heroMobileImage = document.getElementById("heroMobileImage");
+    const heroMobileType = document.getElementById("heroMobileType");
+    const heroMobileTitle = document.getElementById("heroMobileTitle");
+    const heroDesktopImage = document.getElementById("heroDesktopImage");
+    const heroDesktopType = document.getElementById("heroDesktopType");
+    const heroDesktopDetail = document.getElementById("heroDesktopDetail");
+    const heroAccentImage = document.getElementById("heroAccentImage");
+    const heroAccentType = document.getElementById("heroAccentType");
+    const heroAccentDetail = document.getElementById("heroAccentDetail");
 
     function tagClass(value = "") {
       const v = value.toLowerCase();
@@ -494,12 +511,57 @@
       });
     }
 
+    function isDesktopWallpaper(w) {
+      return w.type.toLowerCase().includes("desktop") || w.width > w.height;
+    }
+
+    function isMobileWallpaper(w) {
+      return w.type.toLowerCase().includes("mobile") || w.height >= w.width;
+    }
+
+    function setHeroCardImage(element, wallpaper) {
+      if (!wallpaper?.imageUrl) {
+        element.style.backgroundImage = "";
+        return;
+      }
+      element.style.backgroundImage = `url("${wallpaper.imageUrl}")`;
+    }
+
+    function updateHeroShowcase() {
+      const mobile = wallpapers.find(isMobileWallpaper) || wallpapers[0];
+      const nonMobile = wallpapers.filter(w => w.public_id !== mobile?.public_id);
+      const desktop = nonMobile.find(isDesktopWallpaper) || nonMobile[0] || mobile;
+      const accent = wallpapers.find(w => w.public_id !== mobile?.public_id && w.public_id !== desktop?.public_id)
+        || desktop
+        || mobile;
+
+      if (mobile?.imageUrl) {
+        heroMobileImage.src = mobile.imageUrl;
+        heroMobileImage.classList.add("show");
+      } else {
+        heroMobileImage.removeAttribute("src");
+        heroMobileImage.classList.remove("show");
+      }
+
+      heroMobileType.textContent = mobile?.type || "Mobile 9:16";
+      heroMobileTitle.textContent = mobile?.title || "Dark Aura Lockscreen";
+
+      setHeroCardImage(heroDesktopImage, desktop);
+      heroDesktopType.textContent = desktop?.type || "Desktop 16:9";
+      heroDesktopDetail.textContent = desktop?.category || "Blue Aura";
+
+      setHeroCardImage(heroAccentImage, accent);
+      heroAccentType.textContent = accent?.type || "Manga Style";
+      heroAccentDetail.textContent = accent?.category || "Red Glow";
+    }
+
     function render() {
       const filtered = getFiltered();
       galleryGrid.innerHTML = filtered.map(cardTemplate).join("");
       emptyState.style.display = filtered.length ? "none" : "block";
-      mobileGrid.innerHTML = wallpapers.filter(w => w.type.toLowerCase().includes("mobile") || w.height > w.width).slice(0, 2).map(cardTemplate).join("");
-      desktopGrid.innerHTML = wallpapers.filter(w => w.type.toLowerCase().includes("desktop") || w.width > w.height).slice(0, 2).map(cardTemplate).join("");
+      mobileGrid.innerHTML = wallpapers.filter(isMobileWallpaper).slice(0, 2).map(cardTemplate).join("");
+      desktopGrid.innerHTML = wallpapers.filter(isDesktopWallpaper).slice(0, 2).map(cardTemplate).join("");
+      updateHeroShowcase();
       bindPreviewButtons();
     }
 
