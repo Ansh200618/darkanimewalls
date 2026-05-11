@@ -544,11 +544,7 @@
       }
 
       heroMobileType.textContent = mobile?.type || "Mobile 9:16";
-      if (mobile?.title) {
-        heroMobileTitle.textContent = mobile.title;
-      } else {
-        heroMobileTitle.textContent = "Dark Aura Lockscreen";
-      }
+      heroMobileTitle.textContent = mobile?.title || "Dark Aura Lockscreen";
 
       setHeroCardImage(heroDesktopImage, desktop);
       heroDesktopType.textContent = desktop?.type || "Desktop 16:9";
