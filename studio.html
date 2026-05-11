@@ -310,11 +310,12 @@
     };
 
     document.getElementById("refreshBtn").onclick = loadWallpapers;
-    ["category", "mood", "editCategory", "editMood"].forEach(initMultiPicker);
+    document.querySelectorAll("select.multi-select-native[id]").forEach(select => {
+      initMultiPicker(select.id);
+    });
     document.querySelectorAll(".multi-toolbar .chip-btn[data-action][data-target]").forEach(button => {
       button.addEventListener("click", () => {
         const target = button.dataset.target;
-        if (!target) return;
         setAllMultiOptions(target, button.dataset.action === "select-all");
       });
     });
