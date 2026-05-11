@@ -529,9 +529,8 @@
 
     function updateHeroShowcase() {
       const mobile = wallpapers.find(isMobileWallpaper) || wallpapers[0];
-      const desktop = wallpapers.find(w => isDesktopWallpaper(w) && w.public_id !== mobile?.public_id)
-        || wallpapers.find(w => w.public_id !== mobile?.public_id)
-        || mobile;
+      const nonMobile = wallpapers.filter(w => w.public_id !== mobile?.public_id);
+      const desktop = nonMobile.find(isDesktopWallpaper) || nonMobile[0] || mobile;
       const accent = wallpapers.find(w => w.public_id !== mobile?.public_id && w.public_id !== desktop?.public_id)
         || mobile;
 
@@ -544,7 +543,11 @@
       }
 
       heroMobileType.textContent = mobile?.type || "Mobile 9:16";
-      heroMobileTitle.textContent = mobile?.title || "Dark Aura Lockscreen";
+      if (mobile?.title) {
+        heroMobileTitle.textContent = mobile.title;
+      } else {
+        heroMobileTitle.innerHTML = "Dark Aura<br>Lockscreen";
+      }
 
       setHeroCardImage(heroDesktopImage, desktop);
       heroDesktopType.textContent = desktop?.type || "Desktop 16:9";
@@ -559,8 +562,8 @@
       const filtered = getFiltered();
       galleryGrid.innerHTML = filtered.map(cardTemplate).join("");
       emptyState.style.display = filtered.length ? "none" : "block";
-      mobileGrid.innerHTML = wallpapers.filter(w => w.type.toLowerCase().includes("mobile") || w.height > w.width).slice(0, 2).map(cardTemplate).join("");
-      desktopGrid.innerHTML = wallpapers.filter(w => w.type.toLowerCase().includes("desktop") || w.width > w.height).slice(0, 2).map(cardTemplate).join("");
+      mobileGrid.innerHTML = wallpapers.filter(isMobileWallpaper).slice(0, 2).map(cardTemplate).join("");
+      desktopGrid.innerHTML = wallpapers.filter(isDesktopWallpaper).slice(0, 2).map(cardTemplate).join("");
       updateHeroShowcase();
       bindPreviewButtons();
     }
