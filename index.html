@@ -117,7 +117,7 @@
     .screen:before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.08) 23px,transparent 25px); }
     .screen-copy { position: absolute; left: 24px; right: 24px; bottom: 38px; z-index: 2; }
     .screen-copy small { display: inline-flex; margin-bottom: 10px; padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.14); }
-    .screen-copy h3 { font-size: 1.5rem; line-height: 1; letter-spacing: -.05em; }
+    .screen-copy h3 { font-size: 1.5rem; line-height: 1; letter-spacing: -.05em; white-space: pre-line; }
     .float-card {
       position: absolute; width: 270px; border-radius: 26px; overflow: hidden; border: 1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.075); backdrop-filter: blur(18px); box-shadow: 0 24px 80px rgba(0,0,0,.45);
@@ -297,7 +297,8 @@
           <div class="phone">
             <div id="heroMobileScreen" class="screen">
               <img id="heroMobileImage" class="screen-image" alt="Latest mobile wallpaper preview" loading="lazy">
-              <div class="screen-copy"><small id="heroMobileType">Mobile 9:16</small><h3 id="heroMobileTitle">Dark Aura<br>Lockscreen</h3></div>
+              <div class="screen-copy"><small id="heroMobileType">Mobile 9:16</small><h3 id="heroMobileTitle">Dark Aura
+Lockscreen</h3></div>
             </div>
           </div>
           <div class="float-card two">
@@ -547,7 +548,7 @@
       if (mobile?.title) {
         heroMobileTitle.textContent = mobile.title;
       } else {
-        heroMobileTitle.innerHTML = "Dark Aura<br>Lockscreen";
+        heroMobileTitle.textContent = "Dark Aura\nLockscreen";
       }
 
       setHeroCardImage(heroDesktopImage, desktop);
