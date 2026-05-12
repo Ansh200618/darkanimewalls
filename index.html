@@ -494,7 +494,7 @@
             <p class="sub">${escapeHtml(w.type)} • ${escapeHtml(w.mood || "Dark Anime")}</p>
             <div class="card-actions">
               <button class="small preview-btn" type="button" data-id="${escapeHtml(w.public_id)}">Preview</button>
-              <a class="small download" href="${w.downloadUrl}" download>Download</a>
+              <a class="small download" href="${w.downloadUrl}" download="${escapeHtml(w.title || "wallpaper")}">Download</a>
             </div>
           </div>
         </article>
@@ -622,6 +622,7 @@
       modalTitle.textContent = w.title;
       modalDescription.textContent = w.description || "Premium dark anime wallpaper.";
       modalDownload.href = w.downloadUrl || w.imageUrl;
+      modalDownload.download = w.title || "wallpaper";
       modal.classList.add("show");
       document.body.style.overflow = "hidden";
     }
