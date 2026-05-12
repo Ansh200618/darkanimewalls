@@ -9,7 +9,8 @@ function safeDownloadName(resource, title) {
   const baseName = String(title || fallback || "wallpaper").trim();
   const normalized = baseName
     .normalize("NFKD")
-    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
@@ -18,10 +19,9 @@ function safeDownloadName(resource, title) {
   return resource.format ? `${normalized}.${resource.format}` : normalized;
 }
 
-function originalDownloadUrlWithName(resource, filename) {
+function originalDownloadUrl(resource) {
   if (!resource.secure_url) return "";
-  const encodedFilename = encodeURIComponent(filename);
-  return resource.secure_url.replace("/upload/", `/upload/fl_attachment:${encodedFilename}/`);
+  return resource.secure_url.replace("/upload/", "/upload/fl_attachment/");
 }
 
 module.exports = async function handler(req, res) {
@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
           height: resource.height,
           imageUrl: resource.secure_url,
           downloadName,
-          downloadUrl: originalDownloadUrlWithName(resource, downloadName),
+          downloadUrl: originalDownloadUrl(resource) || resource.secure_url,
           createdAt: resource.created_at
         };
       })
