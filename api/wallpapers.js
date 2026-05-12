@@ -19,7 +19,7 @@ function safeDownloadName(resource, title) {
   return resource.format ? `${normalized}.${resource.format}` : normalized;
 }
 
-function originalDownloadUrl(resource) {
+function attachmentDownloadUrl(resource) {
   if (!resource.secure_url) return "";
   return resource.secure_url.replace("/upload/", "/upload/fl_attachment/");
 }
@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
           height: resource.height,
           imageUrl: resource.secure_url,
           downloadName,
-          downloadUrl: originalDownloadUrl(resource) || resource.secure_url,
+          downloadUrl: attachmentDownloadUrl(resource) || resource.secure_url,
           createdAt: resource.created_at
         };
       })
