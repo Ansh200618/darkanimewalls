@@ -9,7 +9,7 @@ function safeDownloadName(resource, title) {
   const baseName = String(title || fallback || "wallpaper").trim();
   const normalized = baseName
     .normalize("NFKD")
-    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
@@ -20,7 +20,7 @@ function safeDownloadName(resource, title) {
 
 function originalDownloadUrlWithName(resource, filename) {
   if (!resource.secure_url) return "";
-  const encodedFilename = encodeURIComponent(filename || "wallpaper");
+  const encodedFilename = encodeURIComponent(filename);
   return resource.secure_url.replace("/upload/", `/upload/fl_attachment:${encodedFilename}/`);
 }
 
