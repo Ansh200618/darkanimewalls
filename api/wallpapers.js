@@ -1,12 +1,27 @@
 const CLOUDINARY_TAG = process.env.CLOUDINARY_TAG || "dark-anime-walls";
 
-function originalDownloadUrl(resource) {
-  if (!resource.secure_url) return "";
-  return resource.secure_url.replace("/upload/", "/upload/fl_attachment/");
-}
-
 function cleanContext(resource) {
   return resource.context && resource.context.custom ? resource.context.custom : {};
+}
+
+function safeDownloadName(resource, title) {
+  const fallback = (resource.public_id || "wallpaper").split("/").pop();
+  const baseName = String(title || fallback || "wallpaper").trim();
+  const normalized = baseName
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase() || "wallpaper";
+
+  return resource.format ? `${normalized}.${resource.format}` : normalized;
+}
+
+function originalDownloadUrlWithName(resource, filename) {
+  if (!resource.secure_url) return "";
+  const encodedFilename = encodeURIComponent(filename);
+  return resource.secure_url.replace("/upload/", `/upload/fl_attachment:${encodedFilename}/`);
 }
 
 module.exports = async function handler(req, res) {
@@ -43,12 +58,14 @@ module.exports = async function handler(req, res) {
       .filter(resource => !resource.tags?.includes("hidden"))
       .map(resource => {
         const ctx = cleanContext(resource);
+        const title = ctx.title || resource.public_id.split("/").pop().replace(/[-_]/g, " ");
+        const downloadName = safeDownloadName(resource, title);
         const type = ctx.type || (resource.width > resource.height ? "Desktop 16:9" : "Mobile 9:16");
         const resolution = `${resource.width}x${resource.height}`;
 
         return {
           public_id: resource.public_id,
-          title: ctx.title || resource.public_id.split("/").pop().replace(/[-_]/g, " "),
+          title,
           category: ctx.category || "Dark Anime",
           type,
           mood: ctx.mood || "Mixed",
@@ -58,7 +75,8 @@ module.exports = async function handler(req, res) {
           width: resource.width,
           height: resource.height,
           imageUrl: resource.secure_url,
-          downloadUrl: originalDownloadUrl(resource),
+          downloadName,
+          downloadUrl: originalDownloadUrlWithName(resource, downloadName),
           createdAt: resource.created_at
         };
       })
