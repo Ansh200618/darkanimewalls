@@ -380,6 +380,12 @@
           option.selected = !option.selected;
           updateMultiPickerState(selectId);
         });
+        chip.addEventListener("keydown", event => {
+          if (event.key !== " " && event.key !== "Enter") return;
+          event.preventDefault();
+          option.selected = !option.selected;
+          updateMultiPickerState(selectId);
+        });
         picker.appendChild(chip);
       });
       updateMultiPickerState(selectId);
