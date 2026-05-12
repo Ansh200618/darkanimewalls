@@ -9,7 +9,7 @@ function safeDownloadName(resource, title) {
   const baseName = String(title || fallback || "wallpaper").trim();
   const normalized = baseName
     .normalize("NFKD")
-    .replace(/[^\w\s-]/g, "")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
@@ -59,6 +59,7 @@ module.exports = async function handler(req, res) {
       .map(resource => {
         const ctx = cleanContext(resource);
         const title = ctx.title || resource.public_id.split("/").pop().replace(/[-_]/g, " ");
+        const downloadName = safeDownloadName(resource, title);
         const type = ctx.type || (resource.width > resource.height ? "Desktop 16:9" : "Mobile 9:16");
         const resolution = `${resource.width}x${resource.height}`;
 
@@ -74,7 +75,8 @@ module.exports = async function handler(req, res) {
           width: resource.width,
           height: resource.height,
           imageUrl: resource.secure_url,
-          downloadUrl: originalDownloadUrlWithName(resource, safeDownloadName(resource, title)),
+          downloadName,
+          downloadUrl: originalDownloadUrlWithName(resource, downloadName),
           createdAt: resource.created_at
         };
       })
