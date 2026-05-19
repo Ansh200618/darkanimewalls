@@ -586,7 +586,7 @@
 
         const image = document.createElement("img");
         image.src = wallpaper.imageUrl;
-        image.alt = wallpaper.title || `Wallpaper thumbnail ${wallpaper.public_id}`;
+        image.alt = wallpaper.title || `Image thumbnail for ${wallpaper.public_id}`;
         image.loading = "lazy";
 
         const textWrap = document.createElement("div");
@@ -772,6 +772,7 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
+      // dataset values are strings in HTML; keep explicit "true"/"false" for stable submit payloads.
       editForm.dataset.draft = wallpaper.draft ? "true" : "false";
       const editIsScheduled = Boolean(wallpaper.publishAt && !wallpaper.isPublished);
       document.getElementById("editPublishMode").value = editIsScheduled ? "schedule" : "instant";
