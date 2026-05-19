@@ -275,7 +275,7 @@
                   <span class="draft-title" id="draftTitle">Save as draft</span>
                   <span class="draft-hint" id="draftHint">Keeps wallpaper hidden until published.</span>
                 </div>
-                <label class="toggle" for="draft">
+                <label class="toggle">
                   <input id="draft" type="checkbox" aria-labelledby="draftTitle" aria-describedby="draftHint">
                   <span class="toggle-track" aria-hidden="true"></span>
                 </label>
@@ -539,7 +539,7 @@
       return date.toISOString();
     }
 
-    function ensureISODateString(value) {
+    function toISODateStringOrEmpty(value) {
       if (!value) return "";
       const date = new Date(value);
       return Number.isNaN(date.getTime()) ? "" : date.toISOString();
@@ -797,7 +797,7 @@
       // dataset values are strings in HTML; keep explicit values for stable submit payloads.
       editForm.dataset.draft = wallpaper.draft ? "true" : "false";
       // Preserve the current publish schedule because existing wallpapers are no longer editable via publish controls here.
-      editForm.dataset.publishAt = ensureISODateString(wallpaper.publishAt);
+      editForm.dataset.publishAt = toISODateStringOrEmpty(wallpaper.publishAt);
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
