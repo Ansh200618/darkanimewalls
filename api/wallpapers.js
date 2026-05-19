@@ -23,11 +23,7 @@ function buildCloudinaryDownloadUrl(resource, downloadName = "") {
   if (!resource.secure_url) return "";
   try {
     const url = new URL(resource.secure_url);
-    if (downloadName) {
-      url.searchParams.set("dl", downloadName);
-    } else {
-      url.searchParams.set("dl", "");
-    }
+    url.searchParams.set("dl", downloadName || safeDownloadName(resource));
     return url.toString();
   } catch {
     return resource.secure_url;
