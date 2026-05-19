@@ -96,6 +96,26 @@
     .hidden{display:none!important}
     .note{padding:14px 16px;border-radius:18px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.18);margin-top:16px}
     .hint{color:var(--muted);font-size:.82rem;line-height:1.5}
+    .metadata-source-native{display:none}
+    .metadata-picker{
+      display:grid;gap:10px;max-height:250px;overflow:auto;
+      border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);border-radius:15px;padding:10px;
+    }
+    .metadata-picker-empty{color:var(--muted);font-size:.88rem;padding:8px}
+    .metadata-option{
+      width:100%;display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center;text-align:left;
+      border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;background:rgba(255,255,255,.04);color:#fff;cursor:pointer;
+      transition:.2s;
+    }
+    .metadata-option img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#111}
+    .metadata-option b{display:block;font-size:.88rem}
+    .metadata-option span{display:block;color:var(--muted);font-size:.76rem;line-height:1.3}
+    .metadata-option:hover{border-color:rgba(0,200,255,.45);transform:translateY(-1px)}
+    .metadata-option.selected{border-color:rgba(0,200,255,.66);box-shadow:0 0 0 2px rgba(0,200,255,.14)}
+    .metadata-clear{
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
+      font-weight:800;cursor:pointer;width:max-content;
+    }
     .modal{
       position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
       display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
@@ -195,9 +215,10 @@
 
           <div class="field">
             <label for="metadataSource">Copy tags + description from existing image (optional)</label>
-            <select id="metadataSource">
+            <select id="metadataSource" class="metadata-source-native">
               <option value="">Select uploaded image</option>
             </select>
+            <div id="metadataSourcePicker" class="metadata-picker" role="listbox" aria-label="Uploaded images"></div>
           </div>
 
           <div class="field">
@@ -312,6 +333,7 @@
     const editForm = document.getElementById("editForm");
     const editStatus = document.getElementById("editStatus");
     const metadataSource = document.getElementById("metadataSource");
+    const metadataSourcePicker = document.getElementById("metadataSourcePicker");
 
     function showStudio() {
       loginView.classList.add("hidden");
@@ -506,10 +528,64 @@
       if (wallpapersData.some(item => item.public_id === current)) {
         metadataSource.value = current;
       }
+      renderMetadataSourcePicker();
+    }
+
+    function renderMetadataSourcePicker() {
+      metadataSourcePicker.innerHTML = "";
+
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.className = "metadata-clear";
+      clearButton.textContent = "Select uploaded image";
+      clearButton.addEventListener("click", () => {
+        metadataSource.value = "";
+        renderMetadataSourcePicker();
+      });
+      metadataSourcePicker.appendChild(clearButton);
+
+      if (!wallpapersData.length) {
+        const empty = document.createElement("div");
+        empty.className = "metadata-picker-empty";
+        empty.textContent = "No uploaded images available yet.";
+        metadataSourcePicker.appendChild(empty);
+        return;
+      }
+
+      wallpapersData.forEach(wallpaper => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "metadata-option";
+        if (wallpaper.public_id === metadataSource.value) {
+          button.classList.add("selected");
+        }
+
+        const image = document.createElement("img");
+        image.src = wallpaper.imageUrl;
+        image.alt = wallpaper.title || "Uploaded wallpaper";
+        image.loading = "lazy";
+
+        const textWrap = document.createElement("div");
+        const title = document.createElement("b");
+        title.textContent = wallpaper.title || "Untitled";
+        const id = document.createElement("span");
+        id.textContent = wallpaper.public_id;
+        textWrap.appendChild(title);
+        textWrap.appendChild(id);
+
+        button.appendChild(image);
+        button.appendChild(textWrap);
+        button.addEventListener("click", () => {
+          metadataSource.value = wallpaper.public_id;
+          metadataSource.dispatchEvent(new Event("change"));
+        });
+        metadataSourcePicker.appendChild(button);
+      });
     }
 
     metadataSource.addEventListener("change", () => {
       const wallpaper = wallpapersData.find(item => item.public_id === metadataSource.value);
+      renderMetadataSourcePicker();
       if (!wallpaper) return;
       document.getElementById("tags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
       document.getElementById("description").value = wallpaper.description || "";
