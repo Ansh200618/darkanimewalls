@@ -564,7 +564,7 @@
       clearButton.textContent = "Clear selection";
       clearButton.addEventListener("click", () => {
         metadataSource.value = "";
-        renderMetadataSourcePicker();
+        metadataSource.dispatchEvent(new Event("change"));
       });
       metadataSourcePicker.appendChild(clearButton);
 
@@ -580,8 +580,6 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "metadata-option";
-        button.setAttribute("role", "option");
-        button.setAttribute("aria-selected", wallpaper.public_id === metadataSource.value ? "true" : "false");
         if (wallpaper.public_id === metadataSource.value) {
           button.classList.add("selected");
         }
@@ -612,7 +610,11 @@
     metadataSource.addEventListener("change", () => {
       const wallpaper = wallpapersData.find(item => item.public_id === metadataSource.value);
       renderMetadataSourcePicker();
-      if (!wallpaper) return;
+      if (!wallpaper) {
+        document.getElementById("tags").value = "";
+        document.getElementById("description").value = "";
+        return;
+      }
       document.getElementById("tags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
       document.getElementById("description").value = wallpaper.description || "";
     });
