@@ -116,6 +116,11 @@
       border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
       font-weight:800;cursor:pointer;width:max-content;
     }
+    .visually-hidden{
+      position:absolute!important;
+      width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
     .hidden-field{display:none!important}
     .modal{
       position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
@@ -537,8 +542,7 @@
         }
         return "Scheduled";
       }
-      // Hide status text for regular already-published images to keep the list cleaner.
-      return "";
+      return "Published";
     }
 
     function refreshMetadataSourceOptions() {
@@ -722,13 +726,16 @@
 
         list.innerHTML = wallpapersData.map(w => {
           const status = formatPublishStatus(w);
+          const statusMarkup = status === "Published"
+            ? `<span class="visually-hidden">${escapeHtml(status)}</span>`
+            : `<span>${escapeHtml(status)}</span><br>`;
           return `
             <div class="item">
               <img src="${w.imageUrl}" alt="">
               <div>
                 <b>${escapeHtml(w.title)}</b>
                 <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-                ${status ? `<span>${escapeHtml(status)}</span><br>` : ""}
+                ${statusMarkup}
                 <span>${escapeHtml(w.public_id)}</span>
               </div>
               <div class="item-actions">
@@ -785,7 +792,7 @@
     function closeEditWallpaper() {
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
-      editForm.dataset.draft = "false";
+      delete editForm.dataset.draft;
       document.getElementById("editPublishMode").value = "instant";
       updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
     }
