@@ -218,7 +218,7 @@
             <select id="metadataSource" class="metadata-source-native">
               <option value="">Select uploaded image</option>
             </select>
-            <div id="metadataSourcePicker" class="metadata-picker" role="listbox" aria-label="Uploaded images"></div>
+            <div id="metadataSourcePicker" class="metadata-picker" role="group" aria-label="Uploaded images"></div>
           </div>
 
           <div class="field">
@@ -537,7 +537,7 @@
       const clearButton = document.createElement("button");
       clearButton.type = "button";
       clearButton.className = "metadata-clear";
-      clearButton.textContent = "Select uploaded image";
+      clearButton.textContent = "Clear selection";
       clearButton.addEventListener("click", () => {
         metadataSource.value = "";
         renderMetadataSourcePicker();
@@ -556,6 +556,8 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "metadata-option";
+        button.setAttribute("role", "option");
+        button.setAttribute("aria-selected", wallpaper.public_id === metadataSource.value ? "true" : "false");
         if (wallpaper.public_id === metadataSource.value) {
           button.classList.add("selected");
         }
