@@ -116,11 +116,6 @@
       border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
       font-weight:800;cursor:pointer;width:max-content;
     }
-    .visually-hidden{
-      position:absolute!important;
-      width:1px;height:1px;padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
-    }
     .hidden-field{display:none!important}
     .modal{
       position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
@@ -236,7 +231,7 @@
             <div class="field">
               <label for="publishMode">Publish mode</label>
               <select id="publishMode">
-                <option value="instant" selected>Instant upload</option>
+                <option value="instant" selected>Publish immediately</option>
                 <option value="schedule">Schedule publish</option>
               </select>
             </div>
@@ -328,7 +323,7 @@
       <div class="field">
         <label for="editPublishMode">Publish mode</label>
         <select id="editPublishMode">
-          <option value="instant" selected>Instant upload</option>
+          <option value="instant" selected>Publish immediately</option>
           <option value="schedule">Schedule publish</option>
         </select>
       </div>
@@ -591,7 +586,7 @@
 
         const image = document.createElement("img");
         image.src = wallpaper.imageUrl;
-        image.alt = wallpaper.title || "Uploaded wallpaper";
+        image.alt = wallpaper.title || `Wallpaper thumbnail ${wallpaper.public_id}`;
         image.loading = "lazy";
 
         const textWrap = document.createElement("div");
@@ -726,16 +721,13 @@
 
         list.innerHTML = wallpapersData.map(w => {
           const status = formatPublishStatus(w);
-          const statusMarkup = status === "Published"
-            ? `<span class="visually-hidden">${escapeHtml(status)}</span>`
-            : `<span>${escapeHtml(status)}</span><br>`;
           return `
             <div class="item">
               <img src="${w.imageUrl}" alt="">
               <div>
                 <b>${escapeHtml(w.title)}</b>
                 <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-                ${statusMarkup}
+                <span>${escapeHtml(status)}</span><br>
                 <span>${escapeHtml(w.public_id)}</span>
               </div>
               <div class="item-actions">
