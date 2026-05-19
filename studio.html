@@ -197,6 +197,19 @@
             <textarea id="description" placeholder="Premium dark anime wallpaper with crimson aura and manga-style contrast."></textarea>
           </div>
 
+          <div class="two">
+            <div class="field">
+              <label for="publishAt">Schedule publish time (optional)</label>
+              <input id="publishAt" type="datetime-local">
+            </div>
+            <div class="field">
+              <label for="draft" style="display:flex;align-items:center;gap:10px;margin-top:28px;">
+                <input id="draft" type="checkbox">
+                Save as draft
+              </label>
+            </div>
+          </div>
+
           <button class="btn primary" type="submit">Upload to Cloudinary</button>
           <div id="status" class="status">Ready.</div>
         </form>
@@ -269,6 +282,18 @@
       <div class="field">
         <label for="editDescription">Description</label>
         <textarea id="editDescription"></textarea>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label for="editPublishAt">Schedule publish time (optional)</label>
+          <input id="editPublishAt" type="datetime-local">
+        </div>
+        <div class="field">
+          <label for="editDraft" style="display:flex;align-items:center;gap:10px;margin-top:28px;">
+            <input id="editDraft" type="checkbox">
+            Save as draft
+          </label>
+        </div>
       </div>
       <button class="btn primary" type="submit">Save changes</button>
       <div id="editStatus" class="status">Ready.</div>
@@ -430,6 +455,36 @@
       return (wallpaper.tags || []).filter(tag => tag && !derived.has(tag.toLowerCase()));
     }
 
+    function toDatetimeLocalValue(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return localDate.toISOString().slice(0, 16);
+    }
+
+    function getScheduledPublishAt(inputId) {
+      const value = document.getElementById(inputId).value.trim();
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        throw new Error("Invalid schedule date/time.");
+      }
+      return date.toISOString();
+    }
+
+    function formatPublishStatus(wallpaper) {
+      if (wallpaper.draft) return "Draft";
+      if (wallpaper.publishAt && !wallpaper.isPublished) {
+        const publishDate = new Date(wallpaper.publishAt);
+        if (!Number.isNaN(publishDate.getTime())) {
+          return `Scheduled: ${publishDate.toLocaleString()}`;
+        }
+        return "Scheduled";
+      }
+      return "Published";
+    }
+
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -442,6 +497,7 @@
       setStatus("Requesting secure upload signature...");
 
       try {
+        const publishAt = getScheduledPublishAt("publishAt");
         const signatureResponse = await fetch("/api/sign-upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -452,7 +508,9 @@
             type: document.getElementById("type").value,
             mood: getSelectedValues("mood", "Mixed"),
             tags: document.getElementById("tags").value,
-            description: document.getElementById("description").value
+            description: document.getElementById("description").value,
+            draft: document.getElementById("draft").checked,
+            publishAt
           })
         });
 
@@ -483,6 +541,8 @@
         event.target.reset();
         setSelectedValues("category", ["Dark Anime"], "Dark Anime");
         setSelectedValues("mood", ["Mixed"], "Mixed");
+        document.getElementById("draft").checked = false;
+        document.getElementById("publishAt").value = "";
         document.getElementById("previewBox").style.display = "none";
         await loadWallpapers();
       } catch (error) {
@@ -498,7 +558,9 @@
     async function loadWallpapers() {
       try {
         list.innerHTML = "<p>Loading...</p>";
-        const response = await fetch("/api/wallpapers");
+        const response = await fetch("/api/wallpapers", {
+          headers: { "x-studio-password": studioPassword }
+        });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load wallpapers.");
         wallpapersData = data.wallpapers || [];
@@ -513,9 +575,10 @@
             <img src="${w.imageUrl}" alt="">
             <div>
               <b>${escapeHtml(w.title)}</b>
-               <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-               <span>${escapeHtml(w.public_id)}</span>
-             </div>
+                <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
+                <span>${escapeHtml(formatPublishStatus(w))}</span><br>
+                <span>${escapeHtml(w.public_id)}</span>
+              </div>
             <div class="item-actions">
               <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
               <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
@@ -557,6 +620,8 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
+      document.getElementById("editDraft").checked = Boolean(wallpaper.draft);
+      document.getElementById("editPublishAt").value = toDatetimeLocalValue(wallpaper.publishAt);
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
@@ -579,6 +644,7 @@
       setEditStatus("Saving changes...");
 
       try {
+        const publishAt = getScheduledPublishAt("editPublishAt");
         const response = await fetch("/api/update-wallpaper", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -590,7 +656,9 @@
             type: document.getElementById("editType").value,
             mood: getSelectedValues("editMood", "Mixed"),
             tags: document.getElementById("editTags").value,
-            description: document.getElementById("editDescription").value
+            description: document.getElementById("editDescription").value,
+            draft: document.getElementById("editDraft").checked,
+            publishAt
           })
         });
         const data = await response.json();

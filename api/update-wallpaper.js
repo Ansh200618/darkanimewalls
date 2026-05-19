@@ -25,6 +25,18 @@ function parseMultiValue(value, fallback) {
   return list.length ? list : [fallback];
 }
 
+function parseBoolean(value) {
+  if (typeof value === "boolean") return value;
+  return ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
+}
+
+function normalizePublishAt(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -61,6 +73,8 @@ module.exports = async function handler(req, res) {
   const moodList = parseMultiValue(body.mood, "Mixed");
   const mood = moodList.join(", ");
   const description = safeText(body.description, "Premium dark anime wallpaper.");
+  const draft = parseBoolean(body.draft);
+  const publishAt = normalizePublishAt(body.publishAt);
   const extraTags = String(body.tags || "")
     .split(",")
     .map(t => safeText(t).toLowerCase().replace(/\s+/g, "-"))
@@ -82,7 +96,9 @@ module.exports = async function handler(req, res) {
     `category=${category}`,
     `type=${type}`,
     `mood=${mood}`,
-    `description=${description}`
+    `description=${description}`,
+    `draft=${draft ? "true" : "false"}`,
+    `publishAt=${publishAt}`
   ].join("|");
 
   const timestamp = Math.round(Date.now() / 1000);
