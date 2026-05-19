@@ -19,9 +19,10 @@ function safeDownloadName(resource, title) {
   return resource.format ? `${normalized}.${resource.format}` : normalized;
 }
 
-function buildCloudinaryDownloadUrl(resource) {
+function buildCloudinaryDownloadUrl(resource, downloadName = "") {
   if (!resource.secure_url) return "";
-  return resource.secure_url.replace("/upload/", "/upload/fl_attachment/");
+  const attachment = downloadName ? `fl_attachment:${encodeURIComponent(downloadName)}` : "fl_attachment";
+  return resource.secure_url.replace("/upload/", `/upload/${attachment}/`);
 }
 
 function parseBoolean(value) {
@@ -34,6 +35,13 @@ function parseTimestamp(value) {
   const timestamp = Date.parse(value);
   if (Number.isNaN(timestamp)) return null;
   return timestamp;
+}
+
+function parseList(value) {
+  return String(value || "")
+    .split(",")
+    .map(item => String(item || "").trim())
+    .filter(Boolean);
 }
 
 function isStudioAuthorized(req, studioPassword) {
@@ -92,6 +100,7 @@ module.exports = async function handler(req, res) {
         const publishAt = ctx.publishAt || "";
         const publishAtTs = parseTimestamp(publishAt);
         const isPublished = !draft && (!publishAtTs || publishAtTs <= now);
+        const extraTags = parseList(ctx.extraTags);
 
         return {
           public_id: resource.public_id,
@@ -106,11 +115,12 @@ module.exports = async function handler(req, res) {
           height: resource.height,
           imageUrl: resource.secure_url,
           downloadName,
-          downloadUrl: buildCloudinaryDownloadUrl(resource),
+          downloadUrl: buildCloudinaryDownloadUrl(resource, downloadName),
           createdAt: resource.created_at,
           draft,
           publishAt,
-          isPublished
+          isPublished,
+          extraTags
         };
       })
       .filter(item => showAll || item.isPublished)

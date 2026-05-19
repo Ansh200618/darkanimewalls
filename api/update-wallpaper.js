@@ -12,8 +12,9 @@ function signCloudinaryParams(params, apiSecret) {
   return crypto.createHash("sha1").update(sorted + apiSecret).digest("hex");
 }
 
-function safeText(value, fallback = "") {
-  return String(value || fallback).replace(/[|=<>]/g, "").trim().slice(0, 180);
+function safeText(value, fallback = "", maxLength = 180) {
+  const cleaned = String(value || fallback).replace(/[|=<>]/g, "").trim();
+  return Number.isFinite(maxLength) ? cleaned.slice(0, maxLength) : cleaned;
 }
 
 function parseMultiValue(value, fallback) {
@@ -72,22 +73,21 @@ module.exports = async function handler(req, res) {
   const type = safeText(body.type, "Mobile 9:16");
   const moodList = parseMultiValue(body.mood, "Mixed");
   const mood = moodList.join(", ");
-  const description = safeText(body.description, "Premium dark anime wallpaper.");
+  const description = safeText(body.description, "Premium dark anime wallpaper.", null);
   const draft = parseBoolean(body.draft);
   const publishAt = normalizePublishAt(body.publishAt);
   const extraTags = String(body.tags || "")
     .split(",")
-    .map(t => safeText(t).toLowerCase().replace(/\s+/g, "-"))
-    .filter(Boolean)
-    .slice(0, 8);
+    .map(t => safeText(t, "", null).toLowerCase().replace(/\s+/g, "-"))
+    .filter(Boolean);
 
-  const tags = [
+  const tags = [...new Set([
     CLOUDINARY_TAG,
     ...categoryList.map(item => item.toLowerCase().replace(/\s+/g, "-")),
     type.toLowerCase().replace(/\s+/g, "-"),
     ...moodList.map(item => item.toLowerCase().replace(/\s+/g, "-")),
     ...extraTags
-  ]
+  ])]
     .filter(Boolean)
     .join(",");
 
@@ -98,7 +98,8 @@ module.exports = async function handler(req, res) {
     `mood=${mood}`,
     `description=${description}`,
     `draft=${draft ? "true" : "false"}`,
-    `publishAt=${publishAt}`
+    `publishAt=${publishAt}`,
+    `extraTags=${extraTags.join(",")}`
   ].join("|");
 
   const timestamp = Math.round(Date.now() / 1000);
