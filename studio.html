@@ -116,6 +116,7 @@
       border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
       font-weight:800;cursor:pointer;width:max-content;
     }
+    .hidden-field{display:none!important}
     .modal{
       position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
       display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
@@ -228,8 +229,11 @@
 
           <div class="two">
             <div class="field">
-              <label for="publishAt">Schedule publish time (optional)</label>
-              <input id="publishAt" type="datetime-local">
+              <label for="publishMode">Publish mode</label>
+              <select id="publishMode">
+                <option value="instant" selected>Instant upload</option>
+                <option value="schedule">Schedule publish</option>
+              </select>
             </div>
             <div class="field">
               <label for="draft" class="checkbox-label">
@@ -237,6 +241,10 @@
                 Save as draft
               </label>
             </div>
+          </div>
+          <div class="field hidden-field" id="publishAtField">
+            <label for="publishAt">Schedule publish time</label>
+            <input id="publishAt" type="datetime-local">
           </div>
 
           <button class="btn primary" type="submit">Upload to Cloudinary</button>
@@ -313,7 +321,14 @@
         <textarea id="editDescription"></textarea>
       </div>
       <div class="field">
-        <label for="editPublishAt">Schedule publish time (optional)</label>
+        <label for="editPublishMode">Publish mode</label>
+        <select id="editPublishMode">
+          <option value="instant" selected>Instant upload</option>
+          <option value="schedule">Schedule publish</option>
+        </select>
+      </div>
+      <div class="field hidden-field" id="editPublishAtField">
+        <label for="editPublishAt">Schedule publish time</label>
         <input id="editPublishAt" type="datetime-local">
       </div>
       <button class="btn primary" type="submit">Save changes</button>
@@ -504,6 +519,15 @@
       return date.toISOString();
     }
 
+    function updateScheduleFieldVisibility(modeId, fieldId, inputId) {
+      const mode = document.getElementById(modeId).value;
+      const field = document.getElementById(fieldId);
+      const input = document.getElementById(inputId);
+      const isScheduled = mode === "schedule";
+      field.classList.toggle("hidden-field", !isScheduled);
+      if (!isScheduled) input.value = "";
+    }
+
     function formatPublishStatus(wallpaper) {
       if (wallpaper.draft) return "Draft";
       if (wallpaper.publishAt && !wallpaper.isPublished) {
@@ -513,7 +537,7 @@
         }
         return "Scheduled";
       }
-      return "Published";
+      return "";
     }
 
     function refreshMetadataSourceOptions() {
@@ -592,6 +616,14 @@
       document.getElementById("tags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
       document.getElementById("description").value = wallpaper.description || "";
     });
+    document.getElementById("publishMode").addEventListener("change", () => {
+      updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
+    });
+    document.getElementById("editPublishMode").addEventListener("change", () => {
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
+    });
+    updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
+    updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
 
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
@@ -605,7 +637,10 @@
       setStatus("Requesting secure upload signature...");
 
       try {
-        const publishAt = getScheduledPublishAt("publishAt");
+        const publishAt =
+          document.getElementById("publishMode").value === "schedule"
+            ? getScheduledPublishAt("publishAt")
+            : "";
         const signatureResponse = await fetch("/api/sign-upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -650,7 +685,9 @@
         setSelectedValues("category", ["Dark Anime"], "Dark Anime");
         setSelectedValues("mood", ["Mixed"], "Mixed");
         document.getElementById("draft").checked = false;
+        document.getElementById("publishMode").value = "instant";
         document.getElementById("publishAt").value = "";
+        updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
         metadataSource.value = "";
         document.getElementById("previewBox").style.display = "none";
         await loadWallpapers();
@@ -680,21 +717,24 @@
           return;
         }
 
-        list.innerHTML = wallpapersData.map(w => `
-          <div class="item">
-            <img src="${w.imageUrl}" alt="">
-            <div>
-              <b>${escapeHtml(w.title)}</b>
+        list.innerHTML = wallpapersData.map(w => {
+          const status = formatPublishStatus(w);
+          return `
+            <div class="item">
+              <img src="${w.imageUrl}" alt="">
+              <div>
+                <b>${escapeHtml(w.title)}</b>
                 <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-                <span>${escapeHtml(formatPublishStatus(w))}</span><br>
+                ${status ? `<span>${escapeHtml(status)}</span><br>` : ""}
                 <span>${escapeHtml(w.public_id)}</span>
               </div>
-            <div class="item-actions">
-              <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
-              <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
+              <div class="item-actions">
+                <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
+                <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
+              </div>
             </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       } catch (error) {
         list.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
       }
@@ -731,7 +771,10 @@
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
       editForm.dataset.draft = wallpaper.draft ? "true" : "false";
-      document.getElementById("editPublishAt").value = toDatetimeLocalValue(wallpaper.publishAt);
+      const editIsScheduled = Boolean(wallpaper.publishAt && !wallpaper.isPublished);
+      document.getElementById("editPublishMode").value = editIsScheduled ? "schedule" : "instant";
+      document.getElementById("editPublishAt").value = editIsScheduled ? toDatetimeLocalValue(wallpaper.publishAt) : "";
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
@@ -740,6 +783,8 @@
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
       editForm.dataset.draft = "";
+      document.getElementById("editPublishMode").value = "instant";
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
     }
 
     document.getElementById("closeEditBtn").addEventListener("click", closeEditWallpaper);
@@ -755,7 +800,10 @@
       setEditStatus("Saving changes...");
 
       try {
-        const publishAt = getScheduledPublishAt("editPublishAt");
+        const publishAt =
+          document.getElementById("editPublishMode").value === "schedule"
+            ? getScheduledPublishAt("editPublishAt")
+            : "";
         const response = await fetch("/api/update-wallpaper", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
