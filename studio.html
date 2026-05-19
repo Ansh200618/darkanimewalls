@@ -291,17 +291,9 @@
         <label for="editDescription">Description</label>
         <textarea id="editDescription"></textarea>
       </div>
-      <div class="two">
-        <div class="field">
-          <label for="editPublishAt">Schedule publish time (optional)</label>
-          <input id="editPublishAt" type="datetime-local">
-        </div>
-        <div class="field">
-          <label for="editDraft" class="checkbox-label">
-            <input id="editDraft" type="checkbox">
-            Save as draft
-          </label>
-        </div>
+      <div class="field">
+        <label for="editPublishAt">Schedule publish time (optional)</label>
+        <input id="editPublishAt" type="datetime-local">
       </div>
       <button class="btn primary" type="submit">Save changes</button>
       <div id="editStatus" class="status">Ready.</div>
@@ -660,7 +652,7 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
-      document.getElementById("editDraft").checked = Boolean(wallpaper.draft);
+      editForm.dataset.draft = wallpaper.draft ? "true" : "false";
       document.getElementById("editPublishAt").value = toDatetimeLocalValue(wallpaper.publishAt);
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
@@ -669,6 +661,7 @@
     function closeEditWallpaper() {
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
+      editForm.dataset.draft = "";
     }
 
     document.getElementById("closeEditBtn").addEventListener("click", closeEditWallpaper);
@@ -697,7 +690,7 @@
             mood: getSelectedValues("editMood", "Mixed"),
             tags: document.getElementById("editTags").value,
             description: document.getElementById("editDescription").value,
-            draft: document.getElementById("editDraft").checked,
+            draft: editForm.dataset.draft === "true",
             publishAt
           })
         });
