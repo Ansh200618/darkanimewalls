@@ -537,6 +537,7 @@
         }
         return "Scheduled";
       }
+      // Hide status text for regular already-published images to keep the list cleaner.
       return "";
     }
 
@@ -784,7 +785,7 @@
     function closeEditWallpaper() {
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
-      editForm.dataset.draft = "";
+      editForm.dataset.draft = "false";
       document.getElementById("editPublishMode").value = "instant";
       updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
     }
