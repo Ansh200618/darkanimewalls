@@ -193,6 +193,13 @@
           </div>
 
           <div class="field">
+            <label for="metadataSource">Copy tags + description from existing image (optional)</label>
+            <select id="metadataSource">
+              <option value="">Select uploaded image</option>
+            </select>
+          </div>
+
+          <div class="field">
             <label for="description">Description</label>
             <textarea id="description" placeholder="Premium dark anime wallpaper with crimson aura and manga-style contrast."></textarea>
           </div>
@@ -310,6 +317,7 @@
     const editModal = document.getElementById("editModal");
     const editForm = document.getElementById("editForm");
     const editStatus = document.getElementById("editStatus");
+    const metadataSource = document.getElementById("metadataSource");
 
     function showStudio() {
       loginView.classList.add("hidden");
@@ -485,6 +493,27 @@
       return "Published";
     }
 
+    function refreshMetadataSourceOptions() {
+      const current = metadataSource.value;
+      metadataSource.innerHTML = '<option value="">Select uploaded image</option>';
+      wallpapersData.forEach(wallpaper => {
+        const option = document.createElement("option");
+        option.value = wallpaper.public_id;
+        option.textContent = `${wallpaper.title || "Untitled"} (${wallpaper.public_id})`;
+        metadataSource.appendChild(option);
+      });
+      if (wallpapersData.some(item => item.public_id === current)) {
+        metadataSource.value = current;
+      }
+    }
+
+    metadataSource.addEventListener("change", () => {
+      const wallpaper = wallpapersData.find(item => item.public_id === metadataSource.value);
+      if (!wallpaper) return;
+      document.getElementById("tags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
+      document.getElementById("description").value = wallpaper.description || "";
+    });
+
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -543,6 +572,7 @@
         setSelectedValues("mood", ["Mixed"], "Mixed");
         document.getElementById("draft").checked = false;
         document.getElementById("publishAt").value = "";
+        metadataSource.value = "";
         document.getElementById("previewBox").style.display = "none";
         await loadWallpapers();
       } catch (error) {
@@ -564,6 +594,7 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load wallpapers.");
         wallpapersData = data.wallpapers || [];
+        refreshMetadataSourceOptions();
 
         if (!wallpapersData.length) {
           list.innerHTML = "<p>No wallpapers uploaded yet.</p>";
