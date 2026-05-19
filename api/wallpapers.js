@@ -19,9 +19,39 @@ function safeDownloadName(resource, title) {
   return resource.format ? `${normalized}.${resource.format}` : normalized;
 }
 
-function buildCloudinaryDownloadUrl(resource) {
+function buildCloudinaryDownloadUrl(resource, downloadName = "") {
   if (!resource.secure_url) return "";
-  return resource.secure_url.replace("/upload/", "/upload/fl_attachment/");
+  const attachment = downloadName ? `fl_attachment:${encodeURIComponent(downloadName)}` : "fl_attachment";
+  return resource.secure_url.replace("/upload/", `/upload/${attachment}/`);
+}
+
+function parseBoolean(value) {
+  if (typeof value === "boolean") return value;
+  return ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
+}
+
+function parseTimestamp(value) {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) return null;
+  return timestamp;
+}
+
+function parseList(value) {
+  return String(value || "")
+    .split(",")
+    .map(item => String(item || "").trim())
+    .filter(Boolean);
+}
+
+function isStudioAuthorized(req, studioPassword) {
+  if (!studioPassword) return false;
+  const provided =
+    req.headers?.["x-studio-password"] ||
+    req.query?.password ||
+    req.query?.studioPassword ||
+    "";
+  return String(provided) === String(studioPassword);
 }
 
 module.exports = async function handler(req, res) {
@@ -33,6 +63,7 @@ module.exports = async function handler(req, res) {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const studioPassword = process.env.STUDIO_PASSWORD;
 
   if (!cloudName || !apiKey || !apiSecret) {
     res.status(500).json({ error: "Cloudinary environment variables are missing." });
@@ -54,6 +85,9 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    const showAll = isStudioAuthorized(req, studioPassword);
+    const now = Date.now();
+
     const wallpapers = (data.resources || [])
       .filter(resource => !resource.tags?.includes("hidden"))
       .map(resource => {
@@ -62,6 +96,11 @@ module.exports = async function handler(req, res) {
         const downloadName = safeDownloadName(resource, title);
         const type = ctx.type || (resource.width > resource.height ? "Desktop 16:9" : "Mobile 9:16");
         const resolution = `${resource.width}x${resource.height}`;
+        const draft = parseBoolean(ctx.draft);
+        const publishAt = ctx.publishAt || "";
+        const publishAtTs = parseTimestamp(publishAt);
+        const isPublished = !draft && (!publishAtTs || publishAtTs <= now);
+        const extraTags = parseList(ctx.extraTags);
 
         return {
           public_id: resource.public_id,
@@ -76,10 +115,15 @@ module.exports = async function handler(req, res) {
           height: resource.height,
           imageUrl: resource.secure_url,
           downloadName,
-          downloadUrl: buildCloudinaryDownloadUrl(resource),
-          createdAt: resource.created_at
+          downloadUrl: buildCloudinaryDownloadUrl(resource, downloadName),
+          createdAt: resource.created_at,
+          draft,
+          publishAt,
+          isPublished,
+          extraTags
         };
       })
+      .filter(item => showAll || item.isPublished)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
