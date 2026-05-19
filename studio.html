@@ -540,6 +540,12 @@
       return date.toISOString();
     }
 
+    function normalizeStoredPublishAt(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+    }
+
     function updateScheduleFieldVisibility(modeId, fieldId, inputId) {
       const mode = document.getElementById(modeId).value;
       const field = document.getElementById(fieldId);
@@ -789,9 +795,10 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
-      // dataset values are strings in HTML; keep explicit "true"/"false" for stable submit payloads.
+      // dataset values are strings in HTML; keep explicit values for stable submit payloads.
       editForm.dataset.draft = wallpaper.draft ? "true" : "false";
-      editForm.dataset.publishAt = wallpaper.publishAt || "";
+      // Preserve the current publish schedule because existing wallpapers are no longer editable via publish controls here.
+      editForm.dataset.publishAt = normalizeStoredPublishAt(wallpaper.publishAt);
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
