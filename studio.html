@@ -272,11 +272,11 @@
             <div class="field">
               <div class="draft-card">
                 <div class="draft-copy">
-                  <span class="draft-title">Save as draft</span>
-                  <span class="draft-hint">Keeps wallpaper hidden until published.</span>
+                  <span class="draft-title" id="draftTitle">Save as draft</span>
+                  <span class="draft-hint" id="draftHint">Keeps wallpaper hidden until published.</span>
                 </div>
                 <label class="toggle" for="draft">
-                  <input id="draft" type="checkbox" aria-label="Save as draft">
+                  <input id="draft" type="checkbox" aria-labelledby="draftTitle" aria-describedby="draftHint">
                   <span class="toggle-track" aria-hidden="true"></span>
                 </label>
               </div>
