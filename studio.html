@@ -96,6 +96,27 @@
     .hidden{display:none!important}
     .note{padding:14px 16px;border-radius:18px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.18);margin-top:16px}
     .hint{color:var(--muted);font-size:.82rem;line-height:1.5}
+    .metadata-source-native{display:none}
+    .metadata-picker{
+      display:grid;gap:10px;max-height:250px;overflow:auto;
+      border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);border-radius:15px;padding:10px;
+    }
+    .metadata-picker-empty{color:var(--muted);font-size:.88rem;padding:8px}
+    .metadata-option{
+      width:100%;display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center;text-align:left;
+      border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;background:rgba(255,255,255,.04);color:#fff;cursor:pointer;
+      transition:.2s;
+    }
+    .metadata-option img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#111}
+    .metadata-option b{display:block;font-size:.88rem}
+    .metadata-option span{display:block;color:var(--muted);font-size:.76rem;line-height:1.3}
+    .metadata-option:hover{border-color:rgba(0,200,255,.45);transform:translateY(-1px)}
+    .metadata-option.selected{border-color:rgba(0,200,255,.66);box-shadow:0 0 0 2px rgba(0,200,255,.14)}
+    .metadata-clear{
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
+      font-weight:800;cursor:pointer;width:max-content;
+    }
+    .hidden-field{display:none!important}
     .modal{
       position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);
       display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
@@ -195,9 +216,10 @@
 
           <div class="field">
             <label for="metadataSource">Copy tags + description from existing image (optional)</label>
-            <select id="metadataSource">
+            <select id="metadataSource" class="metadata-source-native">
               <option value="">Select uploaded image</option>
             </select>
+            <div id="metadataSourcePicker" class="metadata-picker" role="group" aria-label="Uploaded images"></div>
           </div>
 
           <div class="field">
@@ -207,8 +229,11 @@
 
           <div class="two">
             <div class="field">
-              <label for="publishAt">Schedule publish time (optional)</label>
-              <input id="publishAt" type="datetime-local">
+              <label for="publishMode">Publish mode</label>
+              <select id="publishMode">
+                <option value="instant" selected>Publish immediately</option>
+                <option value="schedule">Schedule publish</option>
+              </select>
             </div>
             <div class="field">
               <label for="draft" class="checkbox-label">
@@ -216,6 +241,10 @@
                 Save as draft
               </label>
             </div>
+          </div>
+          <div class="field hidden-field" id="publishAtField">
+            <label for="publishAt">Schedule publish time</label>
+            <input id="publishAt" type="datetime-local">
           </div>
 
           <button class="btn primary" type="submit">Upload to Cloudinary</button>
@@ -291,17 +320,16 @@
         <label for="editDescription">Description</label>
         <textarea id="editDescription"></textarea>
       </div>
-      <div class="two">
-        <div class="field">
-          <label for="editPublishAt">Schedule publish time (optional)</label>
-          <input id="editPublishAt" type="datetime-local">
-        </div>
-        <div class="field">
-          <label for="editDraft" class="checkbox-label">
-            <input id="editDraft" type="checkbox">
-            Save as draft
-          </label>
-        </div>
+      <div class="field">
+        <label for="editPublishMode">Publish mode</label>
+        <select id="editPublishMode">
+          <option value="instant" selected>Publish immediately</option>
+          <option value="schedule">Schedule publish</option>
+        </select>
+      </div>
+      <div class="field hidden-field" id="editPublishAtField">
+        <label for="editPublishAt">Schedule publish time</label>
+        <input id="editPublishAt" type="datetime-local">
       </div>
       <button class="btn primary" type="submit">Save changes</button>
       <div id="editStatus" class="status">Ready.</div>
@@ -320,6 +348,7 @@
     const editForm = document.getElementById("editForm");
     const editStatus = document.getElementById("editStatus");
     const metadataSource = document.getElementById("metadataSource");
+    const metadataSourcePicker = document.getElementById("metadataSourcePicker");
 
     function showStudio() {
       loginView.classList.add("hidden");
@@ -490,6 +519,15 @@
       return date.toISOString();
     }
 
+    function updateScheduleFieldVisibility(modeId, fieldId, inputId) {
+      const mode = document.getElementById(modeId).value;
+      const field = document.getElementById(fieldId);
+      const input = document.getElementById(inputId);
+      const isScheduled = mode === "schedule";
+      field.classList.toggle("hidden-field", !isScheduled);
+      if (!isScheduled) input.value = "";
+    }
+
     function formatPublishStatus(wallpaper) {
       if (wallpaper.draft) return "Draft";
       if (wallpaper.publishAt && !wallpaper.isPublished) {
@@ -514,14 +552,80 @@
       if (wallpapersData.some(item => item.public_id === current)) {
         metadataSource.value = current;
       }
+      renderMetadataSourcePicker();
+    }
+
+    function renderMetadataSourcePicker() {
+      metadataSourcePicker.innerHTML = "";
+
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.className = "metadata-clear";
+      clearButton.textContent = "Clear selection";
+      clearButton.addEventListener("click", () => {
+        metadataSource.value = "";
+        metadataSource.dispatchEvent(new Event("change"));
+      });
+      metadataSourcePicker.appendChild(clearButton);
+
+      if (!wallpapersData.length) {
+        const empty = document.createElement("div");
+        empty.className = "metadata-picker-empty";
+        empty.textContent = "No uploaded images available yet.";
+        metadataSourcePicker.appendChild(empty);
+        return;
+      }
+
+      wallpapersData.forEach(wallpaper => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "metadata-option";
+        if (wallpaper.public_id === metadataSource.value) {
+          button.classList.add("selected");
+        }
+
+        const image = document.createElement("img");
+        image.src = wallpaper.imageUrl;
+        image.alt = wallpaper.title || `Image thumbnail for ${wallpaper.public_id}`;
+        image.loading = "lazy";
+
+        const textWrap = document.createElement("div");
+        const title = document.createElement("b");
+        title.textContent = wallpaper.title || "Untitled";
+        const id = document.createElement("span");
+        id.textContent = wallpaper.public_id;
+        textWrap.appendChild(title);
+        textWrap.appendChild(id);
+
+        button.appendChild(image);
+        button.appendChild(textWrap);
+        button.addEventListener("click", () => {
+          metadataSource.value = wallpaper.public_id;
+          metadataSource.dispatchEvent(new Event("change"));
+        });
+        metadataSourcePicker.appendChild(button);
+      });
     }
 
     metadataSource.addEventListener("change", () => {
       const wallpaper = wallpapersData.find(item => item.public_id === metadataSource.value);
-      if (!wallpaper) return;
+      renderMetadataSourcePicker();
+      if (!wallpaper) {
+        document.getElementById("tags").value = "";
+        document.getElementById("description").value = "";
+        return;
+      }
       document.getElementById("tags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
       document.getElementById("description").value = wallpaper.description || "";
     });
+    document.getElementById("publishMode").addEventListener("change", () => {
+      updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
+    });
+    document.getElementById("editPublishMode").addEventListener("change", () => {
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
+    });
+    updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
+    updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
 
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
@@ -535,7 +639,10 @@
       setStatus("Requesting secure upload signature...");
 
       try {
-        const publishAt = getScheduledPublishAt("publishAt");
+        const publishAt =
+          document.getElementById("publishMode").value === "schedule"
+            ? getScheduledPublishAt("publishAt")
+            : "";
         const signatureResponse = await fetch("/api/sign-upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -580,7 +687,9 @@
         setSelectedValues("category", ["Dark Anime"], "Dark Anime");
         setSelectedValues("mood", ["Mixed"], "Mixed");
         document.getElementById("draft").checked = false;
+        document.getElementById("publishMode").value = "instant";
         document.getElementById("publishAt").value = "";
+        updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
         metadataSource.value = "";
         document.getElementById("previewBox").style.display = "none";
         await loadWallpapers();
@@ -610,21 +719,24 @@
           return;
         }
 
-        list.innerHTML = wallpapersData.map(w => `
-          <div class="item">
-            <img src="${w.imageUrl}" alt="">
-            <div>
-              <b>${escapeHtml(w.title)}</b>
+        list.innerHTML = wallpapersData.map(w => {
+          const status = formatPublishStatus(w);
+          return `
+            <div class="item">
+              <img src="${w.imageUrl}" alt="">
+              <div>
+                <b>${escapeHtml(w.title)}</b>
                 <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-                <span>${escapeHtml(formatPublishStatus(w))}</span><br>
+                <span>${escapeHtml(status)}</span><br>
                 <span>${escapeHtml(w.public_id)}</span>
               </div>
-            <div class="item-actions">
-              <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
-              <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
+              <div class="item-actions">
+                <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
+                <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
+              </div>
             </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       } catch (error) {
         list.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
       }
@@ -660,8 +772,12 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
-      document.getElementById("editDraft").checked = Boolean(wallpaper.draft);
-      document.getElementById("editPublishAt").value = toDatetimeLocalValue(wallpaper.publishAt);
+      // dataset values are strings in HTML; keep explicit "true"/"false" for stable submit payloads.
+      editForm.dataset.draft = wallpaper.draft ? "true" : "false";
+      const editIsScheduled = Boolean(wallpaper.publishAt && !wallpaper.isPublished);
+      document.getElementById("editPublishMode").value = editIsScheduled ? "schedule" : "instant";
+      document.getElementById("editPublishAt").value = editIsScheduled ? toDatetimeLocalValue(wallpaper.publishAt) : "";
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
@@ -669,6 +785,9 @@
     function closeEditWallpaper() {
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
+      delete editForm.dataset.draft;
+      document.getElementById("editPublishMode").value = "instant";
+      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
     }
 
     document.getElementById("closeEditBtn").addEventListener("click", closeEditWallpaper);
@@ -684,7 +803,10 @@
       setEditStatus("Saving changes...");
 
       try {
-        const publishAt = getScheduledPublishAt("editPublishAt");
+        const publishAt =
+          document.getElementById("editPublishMode").value === "schedule"
+            ? getScheduledPublishAt("editPublishAt")
+            : "";
         const response = await fetch("/api/update-wallpaper", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -697,7 +819,7 @@
             mood: getSelectedValues("editMood", "Mixed"),
             tags: document.getElementById("editTags").value,
             description: document.getElementById("editDescription").value,
-            draft: document.getElementById("editDraft").checked,
+            draft: editForm.dataset.draft === "true",
             publishAt
           })
         });
