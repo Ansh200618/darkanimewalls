@@ -48,7 +48,6 @@
     p{color:var(--muted);line-height:1.65}
     .field{display:grid;gap:8px;margin-bottom:14px}
     label{color:var(--muted);font-weight:900;font-size:.86rem}
-    .checkbox-label{display:flex;align-items:center;gap:10px;margin-top:28px}
     input,select,textarea{
       width:100%;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;border-radius:15px;min-height:48px;padding:12px 14px;outline:none;
     }
@@ -115,6 +114,41 @@
     .metadata-clear{
       border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;
       font-weight:800;cursor:pointer;width:max-content;
+    }
+    .publish-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .draft-card{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;height:100%;
+      border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 16px;
+    }
+    .draft-copy{display:grid;gap:4px}
+    .draft-title{font-size:.92rem;font-weight:900;color:#fff}
+    .draft-hint{font-size:.8rem;line-height:1.45;color:var(--muted)}
+    .toggle{
+      position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;
+    }
+    .toggle input{
+      position:absolute;opacity:0;width:1px;height:1px;min-height:1px;padding:0;
+    }
+    .toggle-track{
+      position:relative;display:block;width:56px;height:32px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.12);transition:.2s;
+      box-shadow:inset 0 1px 6px rgba(0,0,0,.35);
+    }
+    .toggle-track::after{
+      content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+      background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.28);transition:.2s;
+    }
+    .toggle input:checked + .toggle-track{
+      border-color:rgba(0,200,255,.58);background:linear-gradient(135deg,rgba(255,23,68,.92),rgba(139,92,246,.95));
+      box-shadow:0 0 0 3px rgba(139,92,246,.16);
+    }
+    .toggle input:checked + .toggle-track::after{transform:translateX(24px)}
+    .toggle input:focus-visible + .toggle-track{
+      outline:none;box-shadow:0 0 0 3px rgba(0,200,255,.22);
+    }
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+      clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0;
     }
     .hidden-field{display:none!important}
     .modal{
@@ -227,7 +261,7 @@
             <textarea id="description" placeholder="Premium dark anime wallpaper with crimson aura and manga-style contrast."></textarea>
           </div>
 
-          <div class="two">
+          <div class="publish-controls">
             <div class="field">
               <label for="publishMode">Publish mode</label>
               <select id="publishMode">
@@ -236,10 +270,16 @@
               </select>
             </div>
             <div class="field">
-              <label for="draft" class="checkbox-label">
-                <input id="draft" type="checkbox">
-                Save as draft
-              </label>
+              <div class="draft-card">
+                <div class="draft-copy">
+                  <span class="draft-title" id="draftTitle">Save as draft</span>
+                  <span class="draft-hint" id="draftHint">Keeps wallpaper hidden until published.</span>
+                </div>
+                <label class="toggle">
+                  <input id="draft" type="checkbox" aria-labelledby="draftTitle" aria-describedby="draftHint">
+                  <span class="toggle-track" aria-hidden="true"></span>
+                </label>
+              </div>
             </div>
           </div>
           <div class="field hidden-field" id="publishAtField">
@@ -320,24 +360,12 @@
         <label for="editDescription">Description</label>
         <textarea id="editDescription"></textarea>
       </div>
-      <div class="field">
-        <label for="editPublishMode">Publish mode</label>
-        <select id="editPublishMode">
-          <option value="instant" selected>Publish immediately</option>
-          <option value="schedule">Schedule publish</option>
-        </select>
-      </div>
-      <div class="field hidden-field" id="editPublishAtField">
-        <label for="editPublishAt">Schedule publish time</label>
-        <input id="editPublishAt" type="datetime-local">
-      </div>
       <button class="btn primary" type="submit">Save changes</button>
       <div id="editStatus" class="status">Ready.</div>
     </form>
   </div>
 
   <script>
-    const MS_PER_MINUTE = 60000;
     let studioPassword = "";
     let wallpapersData = [];
     const loginView = document.getElementById("loginView");
@@ -501,14 +529,6 @@
       return (wallpaper.tags || []).filter(tag => tag && tag.toLowerCase() !== "dark-anime-walls");
     }
 
-    function toDatetimeLocalValue(value) {
-      if (!value) return "";
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "";
-      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * MS_PER_MINUTE);
-      return localDate.toISOString().slice(0, 16);
-    }
-
     function getScheduledPublishAt(inputId) {
       const value = document.getElementById(inputId).value.trim();
       if (!value) return "";
@@ -517,6 +537,12 @@
         throw new Error("Invalid schedule date/time.");
       }
       return date.toISOString();
+    }
+
+    function toISODateStringOrEmpty(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "" : date.toISOString();
     }
 
     function updateScheduleFieldVisibility(modeId, fieldId, inputId) {
@@ -621,11 +647,7 @@
     document.getElementById("publishMode").addEventListener("change", () => {
       updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
     });
-    document.getElementById("editPublishMode").addEventListener("change", () => {
-      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
-    });
     updateScheduleFieldVisibility("publishMode", "publishAtField", "publishAt");
-    updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
 
     document.getElementById("uploadForm").addEventListener("submit", async event => {
       event.preventDefault();
@@ -772,12 +794,10 @@
       setSelectedValues("editMood", cleanList(wallpaper.mood), "Mixed");
       document.getElementById("editDescription").value = wallpaper.description || "";
       document.getElementById("editTags").value = getExtraTagsFromWallpaper(wallpaper).join(", ");
-      // dataset values are strings in HTML; keep explicit "true"/"false" for stable submit payloads.
+      // dataset values are strings in HTML; keep explicit values for stable submit payloads.
       editForm.dataset.draft = wallpaper.draft ? "true" : "false";
-      const editIsScheduled = Boolean(wallpaper.publishAt && !wallpaper.isPublished);
-      document.getElementById("editPublishMode").value = editIsScheduled ? "schedule" : "instant";
-      document.getElementById("editPublishAt").value = editIsScheduled ? toDatetimeLocalValue(wallpaper.publishAt) : "";
-      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
+      // Preserve the current publish schedule because existing wallpapers are no longer editable via publish controls here.
+      editForm.dataset.publishAt = toISODateStringOrEmpty(wallpaper.publishAt);
       setEditStatus(`Editing: ${wallpaper.public_id}`);
       editModal.classList.add("show");
     }
@@ -786,8 +806,7 @@
       editModal.classList.remove("show");
       editForm.dataset.publicId = "";
       delete editForm.dataset.draft;
-      document.getElementById("editPublishMode").value = "instant";
-      updateScheduleFieldVisibility("editPublishMode", "editPublishAtField", "editPublishAt");
+      delete editForm.dataset.publishAt;
     }
 
     document.getElementById("closeEditBtn").addEventListener("click", closeEditWallpaper);
@@ -803,10 +822,6 @@
       setEditStatus("Saving changes...");
 
       try {
-        const publishAt =
-          document.getElementById("editPublishMode").value === "schedule"
-            ? getScheduledPublishAt("editPublishAt")
-            : "";
         const response = await fetch("/api/update-wallpaper", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -820,7 +835,7 @@
             tags: document.getElementById("editTags").value,
             description: document.getElementById("editDescription").value,
             draft: editForm.dataset.draft === "true",
-            publishAt
+            publishAt: editForm.dataset.publishAt || ""
           })
         });
         const data = await response.json();

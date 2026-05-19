@@ -21,8 +21,13 @@ function safeDownloadName(resource, title) {
 
 function buildCloudinaryDownloadUrl(resource, downloadName = "") {
   if (!resource.secure_url) return "";
-  const attachment = downloadName ? `fl_attachment:${encodeURIComponent(downloadName)}` : "fl_attachment";
-  return resource.secure_url.replace("/upload/", `/upload/${attachment}/`);
+  try {
+    const url = new URL(resource.secure_url);
+    url.searchParams.set("dl", downloadName || safeDownloadName(resource));
+    return url.toString();
+  } catch {
+    return resource.secure_url;
+  }
 }
 
 function parseBoolean(value) {
