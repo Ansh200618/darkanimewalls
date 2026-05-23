@@ -142,7 +142,11 @@ module.exports = async function handler(req, res) {
       .filter(item => showAll || item.isPublished)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+    if (studioAccessRequested) {
+      res.setHeader("Cache-Control", "no-store");
+    } else {
+      res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+    }
     res.status(200).json({ wallpapers });
   } catch (error) {
     res.status(500).json({ error: error.message || "Server error." });
