@@ -398,7 +398,7 @@
           <div class="mini"><h3>Wallpaper Pack Feature</h3><p>Create theme-based wallpaper drops for collaborations or audience requests.</p></div>
         </div>
         <div class="actions reveal" style="margin-top:28px;">
-          <a class="btn primary" href="mailto:darkanimewalls@outlook.com?subject=Collaboration%20Request%20for%20Dark%20Anime%20Walls">Contact for Collab</a>
+          <a class="btn primary" href="https://outlook.live.com/mail/0/deeplink/compose?to=darkanimewalls%40outlook.com&subject=Collaboration%20Request%20for%20Dark%20Anime%20Walls" target="_blank" rel="noopener">Contact for Collab</a>
           <a class="btn" href="https://instagram.com/darkanimewalls" target="_blank" rel="noopener">View Instagram</a>
         </div>
       </div>
@@ -449,7 +449,8 @@
 
   <script>
     const INSTAGRAM_USERNAME = "darkanimewalls";
-    const CONTACT_EMAIL = "contact@darkanimewalls.com";
+    const CONTACT_EMAIL = "darkanimewalls@outlook.com";
+    const OUTLOOK_WEB_COMPOSE_URL = "https://outlook.live.com/mail/0/deeplink/compose";
 
     let wallpapers = [];
     let currentFilter = "All";
@@ -642,6 +643,16 @@
       setTimeout(() => toast.classList.remove("show"), 1800);
     }
 
+    function openContactCompose(subject, body) {
+      const encodedSubject = encodeURIComponent(subject || "");
+      const encodedBody = encodeURIComponent(body || "");
+      const webUrl = `${OUTLOOK_WEB_COMPOSE_URL}?to=${encodeURIComponent(CONTACT_EMAIL)}&subject=${encodedSubject}&body=${encodedBody}`;
+      const popup = window.open(webUrl, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodedSubject}&body=${encodedBody}`;
+      }
+    }
+
     document.getElementById("copyCaption").addEventListener("click", async () => {
       if (!activeWallpaper) return;
       const caption = `${activeWallpaper.title} wallpaper drop 🖤⚡\n${activeWallpaper.type} • ${activeWallpaper.resolution}\nDownload from Dark Anime Walls.\n#animewallpaper #darkanime #wallpaper #animeaesthetic #mangastyle`;
@@ -672,9 +683,9 @@
       const theme = document.getElementById("theme").value.trim();
       const mood = document.getElementById("mood").value;
       const details = document.getElementById("details").value.trim();
-      const subject = encodeURIComponent("Custom Wallpaper Request");
-      const body = encodeURIComponent(`Instagram username: ${username}\nWallpaper type: ${type}\nCharacter/theme: ${theme}\nColor mood: ${mood}\nExtra details: ${details || "No extra details"}`);
-      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+      const subject = "Custom Wallpaper Request";
+      const body = `Instagram username: ${username}\nWallpaper type: ${type}\nCharacter/theme: ${theme}\nColor mood: ${mood}\nExtra details: ${details || "No extra details"}`;
+      openContactCompose(subject, body);
     });
 
     const observer = new IntersectionObserver(entries => {

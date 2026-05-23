@@ -125,7 +125,7 @@ In `index.html`, replace these placeholders with your real details:
 
 ```text
 darkanimewalls
-contact@darkanimewalls.com
+darkanimewalls@outlook.com
 ```
 
 ---
