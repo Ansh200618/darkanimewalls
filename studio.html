@@ -95,6 +95,8 @@
     .hidden{display:none!important}
     .note{padding:14px 16px;border-radius:18px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.18);margin-top:16px}
     .hint{color:var(--muted);font-size:.82rem;line-height:1.5}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+    .section-head h2{margin-bottom:0}
     .metadata-source-native{display:none}
     .metadata-picker{
       display:grid;gap:10px;max-height:250px;overflow:auto;
@@ -172,6 +174,7 @@
         <input id="password" type="password" placeholder="Enter STUDIO_PASSWORD">
       </div>
       <button class="btn primary" id="loginBtn">Unlock</button>
+      <div id="loginStatus" class="status hidden" style="margin-top:12px;"></div>
       <div class="note">This page is separate from the public website. Do not link it in your navbar.</div>
     </section>
 
@@ -292,7 +295,10 @@
         </form>
 
         <div class="card">
-          <h2>Current wallpapers</h2>
+          <div class="section-head">
+            <h2>Current wallpapers</h2>
+            <button id="draftsToggleBtn" class="btn hidden" type="button">Drafts</button>
+          </div>
           <div id="list" class="list">
             <p>Loading...</p>
           </div>
@@ -368,8 +374,10 @@
   <script>
     let studioPassword = "";
     let wallpapersData = [];
+    let activeVisibilityFilter = "all";
     const loginView = document.getElementById("loginView");
     const studioView = document.getElementById("studioView");
+    const loginStatusBox = document.getElementById("loginStatus");
     const statusBox = document.getElementById("status");
     const list = document.getElementById("list");
     const editModal = document.getElementById("editModal");
@@ -377,6 +385,7 @@
     const editStatus = document.getElementById("editStatus");
     const metadataSource = document.getElementById("metadataSource");
     const metadataSourcePicker = document.getElementById("metadataSourcePicker");
+    const draftsToggleBtn = document.getElementById("draftsToggleBtn");
 
     function showStudio() {
       loginView.classList.add("hidden");
@@ -387,22 +396,50 @@
     function showLogin() {
       studioView.classList.add("hidden");
       loginView.classList.remove("hidden");
+      activeVisibilityFilter = "all";
     }
 
-    document.getElementById("loginBtn").onclick = () => {
+    function setLoginStatus(text) {
+      loginStatusBox.textContent = text;
+      loginStatusBox.classList.toggle("hidden", !text);
+    }
+
+    document.getElementById("loginBtn").onclick = async () => {
       const value = document.getElementById("password").value.trim();
       if (!value) return;
-      studioPassword = value;
-      showStudio();
+      const loginButton = document.getElementById("loginBtn");
+      loginButton.disabled = true;
+      setLoginStatus("Checking password...");
+      try {
+        const response = await fetch("/api/wallpapers?studio=1", {
+          headers: { "x-studio-password": value }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Invalid studio password.");
+        studioPassword = value;
+        setLoginStatus("");
+        showStudio();
+      } catch (error) {
+        studioPassword = "";
+        setLoginStatus(error.message || "Invalid studio password.");
+      } finally {
+        loginButton.disabled = false;
+      }
     };
 
     document.getElementById("logoutBtn").onclick = () => {
       studioPassword = "";
       document.getElementById("password").value = "";
+      setLoginStatus("");
       showLogin();
     };
 
     document.getElementById("refreshBtn").onclick = loadWallpapers;
+    draftsToggleBtn.addEventListener("click", () => {
+      activeVisibilityFilter = activeVisibilityFilter === "drafts" ? "all" : "drafts";
+      updateDraftsToggleState();
+      renderWallpapersList();
+    });
     document.querySelectorAll("select.multi-select-native[id]").forEach(select => {
       initMultiPicker(select.id);
     });
@@ -564,6 +601,54 @@
         return "Scheduled";
       }
       return "Published";
+    }
+
+    function updateDraftsToggleState() {
+      const draftCount = wallpapersData.filter(item => item.draft).length;
+      const hasDrafts = draftCount > 0;
+      draftsToggleBtn.classList.toggle("hidden", !hasDrafts);
+      if (!hasDrafts && activeVisibilityFilter === "drafts") {
+        activeVisibilityFilter = "all";
+      }
+      draftsToggleBtn.textContent =
+        activeVisibilityFilter === "drafts"
+          ? `Show all (${wallpapersData.length})`
+          : `Drafts (${draftCount})`;
+    }
+
+    function renderWallpapersList() {
+      const visibleWallpapers =
+        activeVisibilityFilter === "drafts"
+          ? wallpapersData.filter(item => item.draft)
+          : wallpapersData;
+
+      if (!visibleWallpapers.length) {
+        list.innerHTML =
+          activeVisibilityFilter === "drafts"
+            ? "<p>No drafts saved yet.</p>"
+            : "<p>No wallpapers uploaded yet.</p>";
+        return;
+      }
+
+      list.innerHTML = visibleWallpapers.map(w => {
+        const status = formatPublishStatus(w);
+        return `
+          <div class="item">
+            <img src="${w.imageUrl}" alt="">
+            <div>
+              <b>${escapeHtml(w.title)}</b>
+              <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
+              <span>${escapeHtml(status)}</span><br>
+              <span>${escapeHtml(w.public_id)}</span>
+            </div>
+            <div class="item-actions">
+              ${w.draft ? `<button class="btn primary" onclick="publishDraft('${escapeJs(w.public_id)}')">Publish now</button>` : ""}
+              <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
+              <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function refreshMetadataSourceOptions() {
@@ -728,38 +813,23 @@
     async function loadWallpapers() {
       try {
         list.innerHTML = "<p>Loading...</p>";
-        const response = await fetch("/api/wallpapers", {
+        const response = await fetch("/api/wallpapers?studio=1", {
           headers: { "x-studio-password": studioPassword }
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load wallpapers.");
         wallpapersData = data.wallpapers || [];
         refreshMetadataSourceOptions();
-
-        if (!wallpapersData.length) {
-          list.innerHTML = "<p>No wallpapers uploaded yet.</p>";
+        updateDraftsToggleState();
+        renderWallpapersList();
+      } catch (error) {
+        if (String(error.message || "").toLowerCase().includes("password")) {
+          studioPassword = "";
+          document.getElementById("password").value = "";
+          setLoginStatus(error.message);
+          showLogin();
           return;
         }
-
-        list.innerHTML = wallpapersData.map(w => {
-          const status = formatPublishStatus(w);
-          return `
-            <div class="item">
-              <img src="${w.imageUrl}" alt="">
-              <div>
-                <b>${escapeHtml(w.title)}</b>
-                <span>${escapeHtml(w.type)} • ${escapeHtml(w.category)} • ${escapeHtml(w.mood)} • ${escapeHtml(w.resolution)}</span><br>
-                <span>${escapeHtml(status)}</span><br>
-                <span>${escapeHtml(w.public_id)}</span>
-              </div>
-              <div class="item-actions">
-                <button class="btn blue" onclick="openEditWallpaper('${escapeJs(w.public_id)}')">Edit</button>
-                <button class="btn danger" onclick="deleteWallpaper('${escapeJs(w.public_id)}')">Delete</button>
-              </div>
-            </div>
-          `;
-        }).join("");
-      } catch (error) {
         list.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
       }
     }
@@ -777,6 +847,36 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Delete failed.");
 
+        await loadWallpapers();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function publishDraft(publicId) {
+      const wallpaper = wallpapersData.find(item => item.public_id === publicId);
+      if (!wallpaper || !wallpaper.draft) return;
+      if (!confirm("Publish this draft now?")) return;
+
+      try {
+        const response = await fetch("/api/update-wallpaper", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password: studioPassword,
+            public_id: wallpaper.public_id,
+            title: wallpaper.title,
+            category: cleanList(wallpaper.category),
+            type: wallpaper.type || "Mobile 9:16",
+            mood: cleanList(wallpaper.mood),
+            tags: getExtraTagsFromWallpaper(wallpaper).join(", "),
+            description: wallpaper.description || "",
+            draft: false,
+            publishAt: ""
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Publish failed.");
         await loadWallpapers();
       } catch (error) {
         alert(error.message);
