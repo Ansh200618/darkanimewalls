@@ -415,7 +415,11 @@
           headers: { "x-studio-password": value }
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Invalid studio password.");
+        if (!response.ok) {
+          const error = new Error(data.error || "Invalid studio password.");
+          error.status = response.status;
+          throw error;
+        }
         studioPassword = value;
         setLoginStatus("");
         showStudio();
@@ -817,16 +821,20 @@
           headers: { "x-studio-password": studioPassword }
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Unable to load wallpapers.");
+        if (!response.ok) {
+          const error = new Error(data.error || "Unable to load wallpapers.");
+          error.status = response.status;
+          throw error;
+        }
         wallpapersData = data.wallpapers || [];
         refreshMetadataSourceOptions();
         updateDraftsToggleState();
         renderWallpapersList();
       } catch (error) {
-        if (String(error.message || "").toLowerCase().includes("password")) {
+        if (error.status === 401) {
           studioPassword = "";
           document.getElementById("password").value = "";
-          setLoginStatus(error.message);
+          setLoginStatus(error.message || "Invalid studio password.");
           showLogin();
           return;
         }

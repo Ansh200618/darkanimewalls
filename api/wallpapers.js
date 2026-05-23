@@ -60,7 +60,7 @@ function isStudioAuthorized(req, studioPassword) {
 }
 
 function isStudioAccessRequest(req) {
-  return parseBoolean(req.query?.studio || req.query?.studioOnly || req.headers?.["x-studio-access"]);
+  return parseBoolean(req.query?.studio);
 }
 
 module.exports = async function handler(req, res) {

@@ -70,6 +70,7 @@ CLOUDINARY_FOLDER=dark-anime-walls
 Security rule:
 - Never place your API Secret directly inside HTML files.
 - Keep secrets only in Vercel environment variables.
+- Always use HTTPS in production so the studio password is never sent over plain HTTP.
 
 ---
 
