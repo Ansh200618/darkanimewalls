@@ -59,6 +59,10 @@ function isStudioAuthorized(req, studioPassword) {
   return String(provided) === String(studioPassword);
 }
 
+function isStudioAccessRequest(req) {
+  return parseBoolean(req.query?.studio);
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
@@ -69,9 +73,16 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   const studioPassword = process.env.STUDIO_PASSWORD;
+  const studioAccessRequested = isStudioAccessRequest(req);
+  const isAuthorizedStudio = isStudioAuthorized(req, studioPassword);
 
   if (!cloudName || !apiKey || !apiSecret) {
     res.status(500).json({ error: "Cloudinary environment variables are missing." });
+    return;
+  }
+
+  if (studioAccessRequested && !isAuthorizedStudio) {
+    res.status(401).json({ error: "Invalid studio password." });
     return;
   }
 
@@ -90,7 +101,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const showAll = isStudioAuthorized(req, studioPassword);
+    const showAll = isAuthorizedStudio;
     const now = Date.now();
 
     const wallpapers = (data.resources || [])
