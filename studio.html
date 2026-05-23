@@ -175,7 +175,8 @@
       </div>
       <button class="btn primary" id="loginBtn">Unlock</button>
       <div id="loginStatus" class="status hidden" style="margin-top:12px;"></div>
-      <div class="note">This page is separate from the public website. Do not link it in your navbar.</div>
+      <div class="note">Private area. Use the official website for public browsing.</div>
+      <a href="/" class="btn" style="margin-top:12px;">Go to Official Website</a>
     </section>
 
     <section id="studioView" class="hidden">
@@ -411,7 +412,8 @@
       loginButton.disabled = true;
       setLoginStatus("Checking password...");
       try {
-        const response = await fetch("/api/wallpapers?studio=true", {
+        const response = await fetch(`/api/wallpapers?studio=true&t=${Date.now()}`, {
+          cache: "no-store",
           headers: { "x-studio-password": value }
         });
         const data = await response.json();
@@ -817,7 +819,8 @@
     async function loadWallpapers() {
       try {
         list.innerHTML = "<p>Loading...</p>";
-        const response = await fetch("/api/wallpapers?studio=true", {
+        const response = await fetch(`/api/wallpapers?studio=true&t=${Date.now()}`, {
+          cache: "no-store",
           headers: { "x-studio-password": studioPassword }
         });
         const data = await response.json();
