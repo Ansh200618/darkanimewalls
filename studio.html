@@ -411,7 +411,7 @@
       loginButton.disabled = true;
       setLoginStatus("Checking password...");
       try {
-        const response = await fetch("/api/wallpapers?studio=1", {
+        const response = await fetch("/api/wallpapers?studio=true", {
           headers: { "x-studio-password": value }
         });
         const data = await response.json();
@@ -813,7 +813,7 @@
     async function loadWallpapers() {
       try {
         list.innerHTML = "<p>Loading...</p>";
-        const response = await fetch("/api/wallpapers?studio=1", {
+        const response = await fetch("/api/wallpapers?studio=true", {
           headers: { "x-studio-password": studioPassword }
         });
         const data = await response.json();
