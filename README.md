@@ -1,136 +1,78 @@
-# Dark Anime Walls Website
+# Dark Anime Walls
 
-This project gives you:
+Dark Anime Walls is a wallpaper website with two parts:
 
-- a **public wallpaper website** (`index.html`) for your visitors
-- a **private upload page** (`studio.html`) only for you
-- API files that connect everything to Cloudinary storage
+- **Public page (`/`)** – where visitors browse and download wallpapers
+- **Private studio page (`/studio.html`)** – where you upload and manage wallpapers
 
-It is designed to be simple, clean, and easy to manage.
+This setup is made for a single owner who wants an easy way to run a wallpaper site.
+
+---
+
+## How the app works (simple)
+
+1. You upload a wallpaper from your private studio page.
+2. The wallpaper is saved in your cloud storage.
+3. It appears on the public website automatically.
+4. Visitors can view, search, preview, and download it.
+
+So your work is simple: upload once in Studio, and it becomes available to everyone on the main site.
 
 ---
 
 ## What visitors can do
 
-On the public website, people can:
+On the public website, visitors can:
 
-- browse wallpapers
-- search and filter wallpapers
-- open previews
-- download original-quality files
-- send custom wallpaper requests
-- contact you for collaborations
+- Browse all wallpapers
+- Search for specific wallpapers
+- Open a preview before downloading
+- Download original-quality wallpaper files
+- Send wallpaper requests
+- Contact you for collaborations
 
-Visitors do **not** see your private upload tools.
-
----
-
-## Your private manager page
-
-Your private page is:
-
-```text
-https://your-domain.com/studio.html
-```
-
-Use this page to upload and delete wallpapers.
-
-Important:
-- Keep this link private.
-- Do not put it in your public menu.
+Visitors cannot access your private upload tools.
 
 ---
 
-## Before you start
+## What you can do in Studio
 
-You need:
+On your private Studio page, you can:
 
-1. A Cloudinary account
-2. A Vercel project
-3. Your Cloudinary details from the dashboard:
-   - Cloud Name
-   - API Key
-   - API Secret
+- Sign in with your studio password
+- Upload new wallpapers
+- Remove wallpapers you no longer want to show
 
----
-
-## Vercel settings you must add
-
-In **Vercel → Project Settings → Environment Variables**, add:
-
-```text
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-STUDIO_PASSWORD=choose_a_strong_private_password
-CLOUDINARY_TAG=dark-anime-walls
-CLOUDINARY_FOLDER=dark-anime-walls
-```
-
-Security rule:
-- Never place your API Secret directly inside HTML files.
-- Keep secrets only in Vercel environment variables.
-- Always use HTTPS in production so the studio password is never sent over plain HTTP.
+Your Studio link should stay private.
 
 ---
 
-## How uploading works (simple flow)
+## Your normal daily flow
 
-1. Open `/studio.html`
-2. Enter your private studio password
-3. Upload your original image (PNG/JPG/WebP)
-4. Image is saved to Cloudinary
-5. It appears automatically on the public website
-
-The file stays in original quality for downloads.
+- Open `/studio.html`
+- Log in
+- Upload new wallpaper
+- Check `/` to confirm it is live
+- Share your site with your audience
 
 ---
 
-## Run locally on your computer
+## Where to update your public contact info
 
-Install Vercel CLI:
+If you want to change your name/email shown on the site, update `index.html`.
+
+---
+
+## Local run (optional)
+
+If you want to run it on your own computer:
 
 ```bash
-npm i -g vercel
+npm install
+npm run dev
 ```
 
-Start the project:
+Then open:
 
-```bash
-vercel dev
-```
-
-Open:
-
-```text
-http://localhost:3000
-http://localhost:3000/studio.html
-```
-
----
-
-## Deploy steps
-
-1. Push this project to GitHub
-2. Import the repository in Vercel
-3. Add all required environment variables
-4. Deploy
-5. Open `/studio.html` and upload your first wallpaper
-
----
-
-## Update your contact details
-
-In `index.html`, replace these placeholders with your real details:
-
-```text
-darkanimewalls
-darkanimewalls@outlook.com
-```
-
----
-
-## Notes
-
-- This setup is best for a single owner/admin.
-- If you plan to grow into a bigger team, add a full authentication system later.
+- `http://localhost:3000`
+- `http://localhost:3000/studio.html`
