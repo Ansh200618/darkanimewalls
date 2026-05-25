@@ -1,80 +1,56 @@
 # Dark Anime Walls
 
-Dark Anime Walls is a wallpaper website with two parts:
+Dark Anime Walls is a wallpaper website with two simple parts:
 
-- **Public page (`/`)** – where visitors browse and download wallpapers
-- **Private studio page (`/studio.html`)** – where you upload and manage wallpapers
-
-This setup is made for a single owner who wants an easy way to run a wallpaper site.
+- A public page for your audience
+- A private page for you to manage wallpapers
 
 ---
 
-## How the app works (simple)
+## How it works
 
-1. You upload a wallpaper from your private studio page.
-2. The wallpaper is saved in your cloud storage.
-3. It appears on the public website automatically.
-4. Visitors can view, search, preview, and download it.
+1. You upload a wallpaper from your private page.
+2. It is saved and added to your collection.
+3. It appears on your public page automatically.
+4. Visitors can view and download it.
 
-So your work is simple: upload once in Studio, and it becomes available to everyone on the main site.
+That’s it — upload once, and it becomes available to your audience.
 
 ---
 
 ## What visitors can do
 
-On the public website, visitors can:
+Visitors can:
 
-- Browse all wallpapers
-- Search for specific wallpapers
-- Open a preview before downloading
-- Download original-quality wallpaper files
-- Send wallpaper requests
+- Browse wallpapers
+- Search wallpapers
+- Preview wallpapers
+- Download wallpapers
+- Send requests
 - Contact you for collaborations
 
-Visitors cannot access your private upload tools.
-
 ---
 
-## What you can do in Studio
+## What you can do
 
-On your private Studio page, you can:
+From your private page, you can:
 
-- Sign in with your studio password
+- Sign in
 - Upload new wallpapers
-- Remove wallpapers you no longer want to show
-
-Your Studio link should stay private.
-
----
-
-## Your normal daily flow
-
-- Open `/studio.html`
-- Log in
-- Upload new wallpaper
-- Check `/` to confirm it is live
-- Share your site with your audience
+- Remove wallpapers
+- Keep your collection fresh
 
 ---
 
-## Where to update your public contact info
+## Recommended daily flow
 
-If you want to change your name/email shown on the site, update `index.html`.
+- Open your private page
+- Upload new wallpapers
+- Check your public page
+- Share your latest updates with your audience
 
 ---
 
-## Local run (optional)
+## Important
 
-If you want to run it on your own computer:
-
-```bash
-npm install
-npm run dev
-```
-
-Note: local run only works after you set your cloud credentials and studio password in **Vercel → Project Settings → Environment Variables**.
-
-Then open:
-
-- `http://localhost:3000`
-- `http://localhost:3000/studio.html`
+Keep your private page and private password secret.
