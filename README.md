@@ -72,7 +72,7 @@ npm install
 npm run dev
 ```
 
-Note: local run only works after your project settings (cloud account + studio password) are configured.
+Note: local run only works after you set your cloud credentials and studio password in **Vercel → Project Settings → Environment Variables**.
 
 Then open:
 
