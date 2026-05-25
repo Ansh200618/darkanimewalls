@@ -72,6 +72,8 @@ npm install
 npm run dev
 ```
 
+Note: local run only works after your project settings (cloud account + studio password) are configured.
+
 Then open:
 
 - `http://localhost:3000`
