@@ -1,4 +1,4 @@
-# Dark Anime Walls Website
+# Dark Anime Walls Website`n`n<p align="center">`n  <a href="https://github.com/sponsors/anshdeepofficial"><img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" height="40" /></a>`n  <a href="https://buymeacoffee.com/anshdeepofficial"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="40" /></a>`n</p>
 
 This project gives you:
 
@@ -134,10 +134,3 @@ darkanimewalls@outlook.com
 
 - This setup is best for a single owner/admin.
 - If you plan to grow into a bigger team, add a full authentication system later.
-
-## Support Development
-
-This project is free and open source. If you find it useful, you can support continued development through:
-
-- [GitHub Sponsors](https://github.com/sponsors/anshdeepofficial)
-- [Buy Me a Coffee](https://buymeacoffee.com/anshdeepofficial)
