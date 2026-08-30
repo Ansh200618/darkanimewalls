@@ -134,3 +134,10 @@ darkanimewalls@outlook.com
 
 - This setup is best for a single owner/admin.
 - If you plan to grow into a bigger team, add a full authentication system later.
+
+## Support Development
+
+This project is free and open source. If you find it useful, you can support continued development through:
+
+- [GitHub Sponsors](https://github.com/sponsors/anshdeepofficial)
+- [Buy Me a Coffee](https://buymeacoffee.com/anshdeepofficial)
