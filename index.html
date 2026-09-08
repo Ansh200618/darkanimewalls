@@ -215,12 +215,13 @@
     }
     .modal.show { display: grid; }
     .modal-card {
-      width: min(980px,100%); max-height: min(820px,92vh); overflow: auto; border-radius: 30px;
+      width: min(1500px,calc(100vw - 32px)); height: min(94vh,1000px); overflow: hidden; border-radius: 30px;
       border: 1px solid rgba(255,255,255,.15); background: #080711; box-shadow: 0 34px 140px rgba(0,0,0,.72);
-      display: grid; grid-template-columns: 1.05fr .95fr;
+      display: grid; grid-template-columns: minmax(0,1fr) minmax(300px,380px);
     }
-    .modal-preview { min-height: 560px; background: #111; }
-    .modal-preview img { width: 100%; height: 100%; min-height: 560px; object-fit: contain; background: #05040a; }
+    .modal-preview { min-width: 0; min-height: 0; display: grid; place-items: center; background: #05040a; overflow: hidden; }
+    .modal-preview img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; background: #05040a; }
+    .modal-info { overflow-y: auto; }
     .modal-info { padding: 28px; position: relative; }
     .close {
       position: absolute; right: 20px; top: 18px; width: 42px; height: 42px; border-radius: 50%;
@@ -245,7 +246,9 @@
       .grid, .steps, .collabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .toolbar { grid-template-columns: 1fr; }
       .section-head { flex-direction: column; align-items: start; }
-      .modal-preview img, .modal-preview { min-height: 420px; }
+      .modal-card { height: min(94vh,1000px); grid-template-rows: minmax(0,1fr) auto; }
+      .modal-preview { min-height: 0; }
+      .modal-info { max-height: 38vh; }
     }
     @media (max-width: 640px) {
       .container { width: min(100% - 24px, var(--max)); }
@@ -495,11 +498,17 @@
             <p class="sub">${escapeHtml(w.type)} • ${escapeHtml(w.mood || "Dark Anime")}</p>
             <div class="card-actions">
               <button class="small preview-btn" type="button" data-id="${escapeHtml(w.public_id)}">Preview</button>
-              <a class="small download" href="${w.downloadUrl}" download="${escapeHtml(w.downloadName || "wallpaper")}">Download</a>
+              <a class="small download" href="${downloadHref(w)}" download>Download</a>
             </div>
           </div>
         </article>
       `;
+    }
+
+    function downloadHref(w) {
+      const source = w.downloadUrl || w.imageUrl || "";
+      const name = w.downloadName || "wallpaper";
+      return `/api/download?url=${encodeURIComponent(source)}&name=${encodeURIComponent(name)}`;
     }
 
     function escapeHtml(text = "") {
@@ -622,8 +631,8 @@
       modalTags.innerHTML = `<span class="tag ${tagClass(w.category)}">${escapeHtml(w.category)}</span><span class="tag">${escapeHtml(w.type)}</span><span class="tag">${escapeHtml(w.resolution)}</span>`;
       modalTitle.textContent = w.title;
       modalDescription.textContent = w.description || "Premium dark anime wallpaper.";
-      modalDownload.href = w.downloadUrl || w.imageUrl;
-      modalDownload.download = w.downloadName || "wallpaper";
+      modalDownload.href = downloadHref(w);
+      modalDownload.setAttribute("download", "");
       modal.classList.add("show");
       document.body.style.overflow = "hidden";
     }
