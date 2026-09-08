@@ -221,6 +221,7 @@
     }
     .modal-preview { min-width: 0; min-height: 0; display: grid; place-items: center; background: #05040a; overflow: hidden; }
     .modal-preview img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; background: #05040a; }
+    .modal-preview img.portrait-preview { width: auto; max-width: min(100%,520px); }
     .modal-info { overflow-y: auto; }
     .modal-info { padding: 28px; position: relative; }
     .close {
@@ -627,7 +628,7 @@
       const w = wallpapers.find(item => item.public_id === publicId);
       if (!w) return;
       activeWallpaper = w;
-      modalPreview.innerHTML = `<img src="${w.imageUrl}" alt="${escapeHtml(w.title)} full preview">`;
+      modalPreview.innerHTML = `<img class="${isDesktopWallpaper(w) ? "landscape-preview" : "portrait-preview"}" src="${w.imageUrl}" alt="${escapeHtml(w.title)} full preview">`;
       modalTags.innerHTML = `<span class="tag ${tagClass(w.category)}">${escapeHtml(w.category)}</span><span class="tag">${escapeHtml(w.type)}</span><span class="tag">${escapeHtml(w.resolution)}</span>`;
       modalTitle.textContent = w.title;
       modalDescription.textContent = w.description || "Premium dark anime wallpaper.";
