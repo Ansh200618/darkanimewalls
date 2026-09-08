@@ -153,11 +153,11 @@
     }
     .filter.active, .filter:hover { color: #fff; background: linear-gradient(135deg,rgba(255,23,68,.62),rgba(139,92,246,.50)); }
     .random-button {
-      white-space: nowrap; min-height: 42px; border-radius: 999px; padding: 0 16px;
-      border: 0; color: #fff; cursor: pointer; font-weight: 950; font-size: .85rem;
-      background: linear-gradient(135deg,var(--red),var(--purple)); box-shadow: 0 0 22px rgba(139,92,246,.24);
+      white-space: nowrap; min-height: 42px; border-radius: 999px; padding: 0 15px;
+      border: 1px solid rgba(139,92,246,.42); color: #fff; cursor: pointer; font-weight: 900; font-size: .85rem;
+      background: rgba(139,92,246,.14); transition: .2s ease;
     }
-    .random-button:hover { transform: translateY(-2px); }
+    .random-button:hover { background: rgba(139,92,246,.30); border-color: rgba(177,148,255,.72); }
     .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
     .card {
       border: 1px solid rgba(255,255,255,.10); border-radius: var(--radius); overflow: hidden;
@@ -186,6 +186,17 @@
       padding: 32px; border: 1px dashed rgba(255,255,255,.18); color: var(--muted); text-align: center; border-radius: 24px;
     }
     .split { display: grid; grid-template-columns: .86fr 1.14fr; gap: 22px; align-items: stretch; }
+    .wallpaper-section { display: grid; gap: 24px; }
+    .wallpaper-section-head {
+      display: flex; align-items: end; justify-content: space-between; gap: 28px;
+      padding: 28px 30px; border-radius: var(--radius);
+      background: radial-gradient(circle at 10% 20%,rgba(255,23,68,.18),transparent 34%), rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.11);
+    }
+    .wallpaper-section-head h3 { font-size: clamp(2rem,4vw,3.5rem); letter-spacing: -.07em; line-height: .95; }
+    .wallpaper-section-head p { color: var(--muted); line-height: 1.7; max-width: 480px; }
+    #mobileGrid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+    #desktopGrid { grid-template-columns: repeat(3,minmax(0,1fr)); }
     .panel {
       padding: 28px; border-radius: var(--radius); background: radial-gradient(circle at 20% 10%,rgba(255,23,68,.20),transparent 30%), rgba(255,255,255,.065);
       border: 1px solid rgba(255,255,255,.12); box-shadow: 0 24px 80px rgba(0,0,0,.45);
@@ -251,8 +262,9 @@
     @media (max-width: 980px) {
       .links { display: none; }
       .hero-grid, .split, .modal-card { grid-template-columns: 1fr; }
-      .grid, .steps, .collabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .grid, .steps, .collabs, #mobileGrid, #desktopGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .toolbar { grid-template-columns: 1fr; }
+      .wallpaper-section-head { align-items: start; flex-direction: column; }
       .section-head { flex-direction: column; align-items: start; }
       .modal-card { height: min(94vh,1000px); grid-template-rows: minmax(0,1fr) auto; }
       .modal-preview { min-height: 0; }
@@ -264,7 +276,8 @@
       .hero { padding-top: 120px; }
       h1 { font-size: clamp(3rem,16vw,4.6rem); }
       .actions { display: grid; grid-template-columns: 1fr; }
-      .grid, .steps, .collabs, .form-grid { grid-template-columns: 1fr; }
+      .grid, .steps, .collabs, .form-grid, #mobileGrid, #desktopGrid { grid-template-columns: 1fr; }
+      .wallpaper-section-head { padding: 24px; }
       .hero-art { min-height: 500px; }
       .float-card { width: 210px; }
       .float-card.one { right: -30px; }
@@ -345,7 +358,7 @@
             <button class="filter" data-filter="Red Aura">Red Aura</button>
             <button class="filter" data-filter="Blue Aura">Blue Aura</button>
             <button class="filter" data-filter="Purple Aura">Purple Aura</button>
-            <button id="randomWallpaper" class="random-button" type="button" aria-label="Show a random wallpaper">🎲 Random</button>
+            <button id="randomWallpaper" class="random-button" type="button" aria-label="Show a random wallpaper">Random wallpaper</button>
           </div>
         </div>
 
@@ -356,10 +369,12 @@
     </section>
 
     <section id="mobile" class="section">
-      <div class="container split">
-        <div class="panel reveal">
-          <div class="kicker">Mobile Wallpapers</div>
-          <h3>Lockscreen-ready 9:16 drops.</h3>
+      <div class="container wallpaper-section">
+        <div class="wallpaper-section-head reveal">
+          <div>
+            <div class="kicker">Mobile Wallpapers</div>
+            <h3>Lockscreen-ready 9:16 drops.</h3>
+          </div>
           <p>Vertical wallpapers optimized for phones, Instagram story previews, and daily lock screen changes.</p>
         </div>
         <div id="mobileGrid" class="grid reveal"></div>
@@ -367,10 +382,12 @@
     </section>
 
     <section id="desktop" class="section">
-      <div class="container split">
-        <div class="panel reveal">
-          <div class="kicker">Desktop Wallpapers</div>
-          <h3>Cinematic 16:9 widescreen edits.</h3>
+      <div class="container wallpaper-section">
+        <div class="wallpaper-section-head reveal">
+          <div>
+            <div class="kicker">Desktop Wallpapers</div>
+            <h3>Cinematic 16:9 widescreen edits.</h3>
+          </div>
           <p>Horizontal wallpapers for desktop setups, laptop backgrounds, gaming desks, and cinematic anime-style screens.</p>
         </div>
         <div id="desktopGrid" class="grid reveal"></div>
@@ -590,8 +607,8 @@
       const filtered = getFiltered();
       galleryGrid.innerHTML = filtered.map(cardTemplate).join("");
       emptyState.style.display = filtered.length ? "none" : "block";
-      mobileGrid.innerHTML = wallpapers.filter(isMobileWallpaper).slice(0, 2).map(cardTemplate).join("");
-      desktopGrid.innerHTML = wallpapers.filter(isDesktopWallpaper).slice(0, 2).map(cardTemplate).join("");
+      mobileGrid.innerHTML = wallpapers.filter(isMobileWallpaper).map(cardTemplate).join("");
+      desktopGrid.innerHTML = wallpapers.filter(isDesktopWallpaper).map(cardTemplate).join("");
       updateHeroShowcase();
       bindPreviewButtons();
     }
