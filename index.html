@@ -61,6 +61,56 @@
       background-size: 48px 48px;
       mask-image: radial-gradient(circle at center, black, transparent 78%);
     }
+    .background-elements {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .ambient-shape {
+      position: absolute; display: block; border-radius: 50%;
+      will-change: transform; opacity: .38;
+    }
+    .ambient-shape.orb {
+      width: clamp(180px,24vw,380px); aspect-ratio: 1;
+      background: radial-gradient(circle at 35% 35%,rgba(255,255,255,.18),rgba(139,92,246,.13) 30%,rgba(255,23,68,.05) 58%,transparent 72%);
+      filter: blur(3px); animation: ambientFloat 18s ease-in-out infinite alternate;
+    }
+    .ambient-shape.ring {
+      width: clamp(110px,15vw,230px); aspect-ratio: 1;
+      border: 1px solid rgba(0,200,255,.20);
+      box-shadow: inset 0 0 35px rgba(0,200,255,.04),0 0 30px rgba(0,200,255,.05);
+      animation: ambientSpin 28s linear infinite, ambientPulse 7s ease-in-out infinite;
+    }
+    .ambient-shape.spark {
+      width: 5px; height: 5px; background: #fff;
+      box-shadow: 0 0 14px rgba(255,255,255,.9),35px 52px 0 rgba(139,92,246,.65),-48px 95px 0 rgba(0,200,255,.55),70px 150px 0 rgba(255,23,68,.48);
+      animation: sparkDrift 14s ease-in-out infinite alternate;
+    }
+    .ambient-shape:nth-child(1) { top: 10%; left: -8%; }
+    .ambient-shape:nth-child(2) { top: 38%; right: -7%; animation-delay: -7s; }
+    .ambient-shape:nth-child(3) { bottom: 3%; left: 20%; animation-delay: -12s; }
+    .ambient-shape:nth-child(4) { top: 18%; right: 8%; }
+    .ambient-shape:nth-child(5) { top: 57%; left: 5%; animation-delay: -9s; }
+    .ambient-shape:nth-child(6) { top: 28%; left: 52%; animation-delay: -5s; }
+    .ambient-shape:nth-child(7) { bottom: 15%; right: 18%; animation-delay: -10s; }
+    nav, main, footer { position: relative; z-index: 1; }
+    @keyframes ambientFloat {
+      0% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(45px,-55px,0) scale(1.12); }
+      100% { transform: translate3d(-20px,70px,0) scale(.92); }
+    }
+    @keyframes ambientSpin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes ambientPulse {
+      0%,100% { opacity: .22; }
+      50% { opacity: .48; }
+    }
+    @keyframes sparkDrift {
+      from { transform: translate3d(0,0,0) rotate(0deg); opacity: .28; }
+      to { transform: translate3d(55px,-90px,0) rotate(35deg); opacity: .65; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ambient-shape { animation: none !important; }
+    }
     a { color: inherit; text-decoration: none; }
     img { display: block; max-width: 100%; }
     button, input, select, textarea { font: inherit; }
@@ -272,6 +322,9 @@
     }
     @media (max-width: 640px) {
       .container { width: min(100% - 24px, var(--max)); }
+      .ambient-shape { opacity: .24; }
+      .ambient-shape.orb { width: 230px; }
+      .ambient-shape.ring { width: 130px; }
       .cta { display: none; }
       .hero { padding-top: 120px; }
       h1 { font-size: clamp(3rem,16vw,4.6rem); }
@@ -294,6 +347,15 @@
 </head>
 
 <body>
+  <div class="background-elements" aria-hidden="true">
+    <span class="ambient-shape orb"></span>
+    <span class="ambient-shape orb"></span>
+    <span class="ambient-shape orb"></span>
+    <span class="ambient-shape ring"></span>
+    <span class="ambient-shape ring"></span>
+    <span class="ambient-shape spark"></span>
+    <span class="ambient-shape spark"></span>
+  </div>
   <nav class="nav">
     <div class="container nav-inner">
       <a class="brand" href="#home"><img class="brand-logo" src="/Logo/Logo.png" alt="Dark Anime Walls logo"><span>Dark Anime Walls</span></a>
