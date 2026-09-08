@@ -152,6 +152,12 @@
       color: var(--muted); cursor: pointer; font-weight: 900; font-size: .85rem;
     }
     .filter.active, .filter:hover { color: #fff; background: linear-gradient(135deg,rgba(255,23,68,.62),rgba(139,92,246,.50)); }
+    .random-button {
+      white-space: nowrap; min-height: 42px; border-radius: 999px; padding: 0 16px;
+      border: 0; color: #fff; cursor: pointer; font-weight: 950; font-size: .85rem;
+      background: linear-gradient(135deg,var(--red),var(--purple)); box-shadow: 0 0 22px rgba(139,92,246,.24);
+    }
+    .random-button:hover { transform: translateY(-2px); }
     .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
     .card {
       border: 1px solid rgba(255,255,255,.10); border-radius: var(--radius); overflow: hidden;
@@ -339,6 +345,7 @@
             <button class="filter" data-filter="Red Aura">Red Aura</button>
             <button class="filter" data-filter="Blue Aura">Blue Aura</button>
             <button class="filter" data-filter="Purple Aura">Purple Aura</button>
+            <button id="randomWallpaper" class="random-button" type="button" aria-label="Show a random wallpaper">🎲 Random</button>
           </div>
         </div>
 
@@ -471,6 +478,7 @@
     const emptyState = document.getElementById("emptyState");
     const searchInput = document.getElementById("searchInput");
     const filters = document.getElementById("filters");
+    const randomWallpaper = document.getElementById("randomWallpaper");
     const heroMobileImage = document.getElementById("heroMobileImage");
     const heroMobileType = document.getElementById("heroMobileType");
     const heroMobileTitle = document.getElementById("heroMobileTitle");
@@ -648,6 +656,18 @@
     }
 
     closeModal.addEventListener("click", closePreview);
+    randomWallpaper.addEventListener("click", () => {
+      if (!wallpapers.length) {
+        showToast("No wallpapers available yet");
+        return;
+      }
+
+      const choices = wallpapers.length > 1 && activeWallpaper
+        ? wallpapers.filter(w => w.public_id !== activeWallpaper.public_id)
+        : wallpapers;
+      const random = choices[Math.floor(Math.random() * choices.length)];
+      openPreview(random.public_id);
+    });
     modal.addEventListener("click", e => { if (e.target === modal) closePreview(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") closePreview(); });
 
